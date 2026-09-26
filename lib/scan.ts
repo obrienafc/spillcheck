@@ -124,6 +124,7 @@ export async function scan(input: string, onProgress?: Progress): Promise<Report
   );
 
   let report: Report;
+  let fellBack = false;
   if (browserAvailable()) {
     try {
       report = await scanWithBrowser(url, input, onProgress);
@@ -132,12 +133,15 @@ export async function scan(input: string, onProgress?: Progress): Promise<Report
       console.error('Browser scan failed, falling back to static scan', err);
       report = await scanStatically(url, input);
       report.notes.unshift('The headless browser couldn’t start, so this is a static scan of the HTML and CSS only.');
+      fellBack = true;
     }
   } else {
     report = await scanStatically(url, input);
   }
 
-  await cache.set(key, report, { ttl: CACHE_TTL, name: url.hostname }).catch(() => {});
+  // A fallback is a degraded result: keep it briefly so the next visit retries.
+  const ttl = fellBack ? 60 : CACHE_TTL;
+  await cache.set(key, report, { ttl, name: url.hostname }).catch(() => {});
   return report;
 }
 

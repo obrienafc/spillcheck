@@ -1,9 +1,16 @@
 import type { NextConfig } from 'next';
 
+// Chromium ships as compressed files that nothing imports, so file tracing
+// would leave them out of the function bundle unless listed here.
+const chromiumFiles = ['./node_modules/@sparticuz/chromium/bin/**'];
+
 const config: NextConfig = {
   poweredByHeader: false,
-  // Chromium ships as a compressed binary that must stay on disk, not be bundled.
   serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
+  outputFileTracingIncludes: {
+    '/api/scan': chromiumFiles,
+    '/badge': chromiumFiles,
+  },
 };
 
 export default config;
