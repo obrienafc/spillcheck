@@ -9,6 +9,7 @@ const config: NextConfig = {
   serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
   outputFileTracingIncludes: {
     '/api/scan': chromiumFiles,
+    '/api/scan-eu': chromiumFiles,
     '/badge': chromiumFiles,
   },
 };

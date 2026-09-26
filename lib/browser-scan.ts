@@ -3,17 +3,26 @@ import type { Browser, CDPSession, HTTPRequest } from 'puppeteer-core';
 import { getDomain } from 'tldts';
 import puppeteer from 'puppeteer-core';
 import type { Kind, Resource } from './extract';
+import { acceptConsent } from './consent';
 import { startGuardProxy } from './guard-proxy';
 import { ScanError } from './safe-fetch';
 
-export type Stage = 'launch' | 'load' | 'watch' | 'grade';
+export type Stage = 'launch' | 'load' | 'watch' | 'consent' | 'grade';
 export type Progress = (update: { stage: Stage; requests?: number; thirdPartyHosts?: number }) => void;
+
+type Cookie = { name: string; domain: string };
 
 export type BrowserResult = {
   finalUrl: URL;
   status: number;
+  /** Everything requested, before and after consent. */
   resources: Resource[];
-  cookies: { name: string; domain: string }[];
+  /** How many of `resources` were requested before consent was given. */
+  beforeConsent: number;
+  cookiesBefore: Cookie[];
+  cookiesAfter: Cookie[];
+  /** The consent tool that was accepted, or null if no banner was found. */
+  consent: string | null;
 };
 
 const NAV_TIMEOUT = 20_000;
@@ -153,22 +162,38 @@ export async function browserScan(url: URL, onProgress: Progress = () => {}): Pr
     // One more beat for anything that started right at the end.
     await new Promise((r) => setTimeout(r, 400));
 
-    onProgress({ stage: 'grade', requests: resources.length, thirdPartyHosts: hosts.size });
-    const { cookies } = (await cdp.send('Network.getAllCookies')) as {
-      cookies: { name: string; domain: string }[];
+    const readCookies = async (): Promise<Cookie[]> => {
+      const { cookies } = (await cdp.send('Network.getAllCookies')) as { cookies: Cookie[] };
+      return cookies.map((c) => ({ name: c.name, domain: c.domain.replace(/^\./, '') }));
     };
+
+    // What a visitor gets before touching the cookie banner...
+    const beforeConsent = resources.length;
+    const cookiesBefore = await readCookies();
+
+    // ...and after clicking "Accept all".
+    onProgress({ stage: 'consent', requests: resources.length, thirdPartyHosts: hosts.size });
+    const consent = await acceptConsent(page).catch(() => null);
+    if (consent) {
+      lastActivity = Date.now();
+      // Some banners reload the page after consent.
+      await page.waitForNetworkIdle({ idleTime: QUIET_MS, timeout: WATCH_MAX }).catch(() => {});
+      await page.evaluate(SCROLL_SCRIPT).catch(() => {});
+      const afterStarted = Date.now();
+      while (Date.now() - afterStarted < WATCH_MAX && Date.now() - lastActivity < QUIET_MS) {
+        await new Promise((r) => setTimeout(r, 250));
+      }
+    }
+    const cookiesAfter = consent ? await readCookies() : cookiesBefore;
+
+    onProgress({ stage: 'grade', requests: resources.length, thirdPartyHosts: hosts.size });
 
     for (const r of resources) {
       const id = ids.get(r.url);
       if (id && bytes.has(id)) r.bytes = bytes.get(id);
     }
 
-    return {
-      finalUrl,
-      status,
-      resources,
-      cookies: cookies.map((c) => ({ name: c.name, domain: c.domain.replace(/^\./, '') })),
-    };
+    return { finalUrl, status, resources, beforeConsent, cookiesBefore, cookiesAfter, consent };
   } finally {
     await browser?.close().catch(() => {});
     await proxy.close();

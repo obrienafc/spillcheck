@@ -12,6 +12,7 @@ import {
   CreditCard,
   FileCode,
   Globe,
+  Hourglass,
   Link2,
   Lock,
   type LucideIcon,
@@ -101,6 +102,12 @@ export const ERRORS: Record<
     title: 'Too many redirects',
     hint: 'The site kept sending Spillcheck somewhere else. Try the final address directly.',
     retry: false,
+  },
+  'rate-limited': {
+    icon: Hourglass,
+    title: 'That’s a lot of scans',
+    hint: 'Each scan runs a real browser, so there’s a limit of 10 new scans a minute. Results you’ve already run are free. Try again in a minute.',
+    retry: true,
   },
   offline: {
     icon: WifiOff,

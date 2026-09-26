@@ -5,6 +5,7 @@ import { CATEGORIES, type Category } from './categories';
 import { extractCss, extractHtml, type Kind, type Resource } from './extract';
 import { identify, type Service } from './parties';
 import { guardedLookup } from './net-guard';
+import { allowScan } from './rate-limit';
 import { ScanError, assertPublicUrl, safeFetch } from './safe-fetch';
 
 const MAX_STYLESHEETS = 12;
@@ -53,9 +54,28 @@ export type Report = {
   notes: string[];
   /** Where the scan ran. Sites often load fewer trackers for EU visitors. */
   region: string;
+  /** What happened when Spillcheck tried to accept the cookie banner. */
+  consent: ConsentResult;
 };
 
+/** The parts of a report that change once cookies are accepted. */
+export type ConsentView = Pick<
+  Report,
+  'score' | 'grade' | 'requests' | 'thirdPartyBytes' | 'cookies' | 'parties' | 'companies' | 'googleFonts'
+>;
+
+export type ConsentResult =
+  | { status: 'accepted'; tool: string; after: ConsentView }
+  | { status: 'not-found' }
+  | { status: 'not-attempted' };
+
 export type ScanProgress = Progress;
+
+export type ScanOptions = {
+  onProgress?: Progress;
+  /** For rate limiting new scans. */
+  ip?: string | null;
+};
 
 function siteOf(url: URL) {
   return getDomain(url.hostname, { allowPrivateDomains: true }) ?? url.hostname;
@@ -102,13 +122,18 @@ function cacheKey(url: URL) {
 }
 
 /** Returns a cached report when there is one, otherwise scans and caches. */
-export async function scan(input: string, onProgress?: Progress): Promise<Report> {
+export async function scan(input: string, { onProgress, ip }: ScanOptions = {}): Promise<Report> {
   const url = assertPublicUrl(normalizeInput(input));
   const cache = getCache({ namespace: 'spillcheck' });
-  const key = cacheKey(url);
+  // Results differ by location, so each region caches its own.
+  const key = `${process.env.VERCEL_REGION ?? 'local'}:${cacheKey(url)}`;
 
   const cached = (await cache.get(key).catch(() => null)) as Report | null;
   if (cached) return { ...cached, url: input };
+
+  if (!(await allowScan(ip ?? null))) {
+    throw new ScanError('Too many new scans from this address. Try again in a minute.', 'rate-limited', 429);
+  }
 
   // Resolve first: private addresses fail fast, before a browser starts.
   await new Promise<void>((resolve, reject) =>
@@ -154,15 +179,26 @@ async function scanWithBrowser(url: URL, input: string, onProgress?: Progress) {
       502,
     );
   }
-  return buildReport({
-    input,
-    mode: 'browser',
-    finalUrl: result.finalUrl,
-    status: result.status,
-    resources: result.resources,
-    cookies: result.cookies,
+  const shared = { input, mode: 'browser' as const, finalUrl: result.finalUrl, status: result.status };
+  // The headline is what a visitor gets before touching the banner.
+  const before = buildReport({
+    ...shared,
+    resources: result.resources.slice(0, result.beforeConsent),
+    cookies: result.cookiesBefore,
     notes: [],
   });
+  if (!result.consent) return { ...before, consent: { status: 'not-found' } } satisfies Report;
+
+  const after = buildReport({ ...shared, resources: result.resources, cookies: result.cookiesAfter, notes: [] });
+  const { score, grade, requests, thirdPartyBytes, cookies, parties, companies, googleFonts } = after;
+  return {
+    ...before,
+    consent: {
+      status: 'accepted',
+      tool: result.consent,
+      after: { score, grade, requests, thirdPartyBytes, cookies, parties, companies, googleFonts },
+    },
+  } satisfies Report;
 }
 
 async function scanStatically(url: URL, input: string) {
@@ -211,7 +247,7 @@ async function scanStatically(url: URL, input: string) {
   }
 
   const host = page.url.hostname;
-  return buildReport({
+  const report = buildReport({
     input,
     mode: 'static',
     finalUrl: page.url,
@@ -222,6 +258,7 @@ async function scanStatically(url: URL, input: string) {
       .filter((c) => c.name),
     notes,
   });
+  return { ...report, consent: { status: 'not-attempted' } } satisfies Report;
 }
 
 function buildReport(input: {
@@ -232,7 +269,7 @@ function buildReport(input: {
   resources: Resource[];
   cookies: { name: string; domain: string }[];
   notes: string[];
-}): Report {
+}): Omit<Report, 'consent'> {
   const { finalUrl, resources, notes } = input;
   const site = siteOf(finalUrl);
   const brand = brandOf(finalUrl);

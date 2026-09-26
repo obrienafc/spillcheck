@@ -10,6 +10,7 @@ export type ErrorCode =
   | 'blocked'
   | 'not-html'
   | 'redirects'
+  | 'rate-limited'
   | 'failed';
 
 export class ScanError extends Error {

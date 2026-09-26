@@ -6,6 +6,7 @@ import { ErrorView, IdleView, ResultView, ScanForm, ScanningView, Shell } from '
 import { ERRORS, type ClientErrorCode } from '@/components/icons';
 import type { Report } from '@/lib/scan';
 import clean from '@/lib/fixtures/clean.json';
+import consent from '@/lib/fixtures/consent.json';
 import heavy from '@/lib/fixtures/heavy.json';
 import moderate from '@/lib/fixtures/moderate.json';
 
@@ -29,7 +30,7 @@ export default function States() {
       <main className="wrap states">
         <h1>States</h1>
         <nav className="states-nav" aria-label="States">
-          {['empty', 'invalid', 'scanning', 'clean', 'tag-manager', 'heavy', 'errors'].map((s) => (
+          {['empty', 'invalid', 'scanning', 'clean', 'tag-manager', 'consent', 'heavy', 'errors'].map((s) => (
             <a key={s} href={`#${s}`}>
               {s}
             </a>
@@ -52,10 +53,10 @@ export default function States() {
           <ScanForm value="" onChange={noop} onSubmit={noop} invalid />
         </Frame>
 
-        <Frame id="scanning" title="Scanning" note="Streams live stages and a running request count.">
+        <Frame id="scanning" title="Scanning" note="Streams live stages and a running request count, here at the consent step.">
           <ScanForm value="cnn.com" onChange={noop} onSubmit={noop} busy />
           <div className="main">
-            <ScanningView url="cnn.com" stage="watch" requests={148} thirdPartyHosts={34} />
+            <ScanningView url="cnn.com" stage="consent" requests={148} thirdPartyHosts={34} />
           </div>
         </Frame>
 
@@ -67,7 +68,11 @@ export default function States() {
           <ResultView report={moderate as unknown as Report} autoFocus={false} />
         </Frame>
 
-        <Frame id="heavy" title="Result: heavy" note="cnn.com: 18 parties, 105 third-party requests, 5.9 MB.">
+        <Frame id="consent" title="Result: before and after consent" note="theguardian.com from Dublin: 1 third party before consent, 100 after accepting.">
+          <ResultView report={consent as unknown as Report} autoFocus={false} />
+        </Frame>
+
+        <Frame id="heavy" title="Result: heavy" note="cnn.com from Dublin: 16 parties before consent, 103 after.">
           <ResultView report={heavy as unknown as Report} autoFocus={false} />
         </Frame>
 

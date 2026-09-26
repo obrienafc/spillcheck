@@ -27,6 +27,14 @@ page gets a privacy grade from A+ to F.
   analytics and fonts cost the least; third-party cookies add a small penalty.
   Domains that share the site's name (bbc.com for bbc.co.uk) are shown as related
   and barely count. Known-malicious domains (like polyfill.io) are flagged.
+- **Before and after consent.** Spillcheck clicks "Accept all" on the cookie
+  banner (OneTrust, Cookiebot, Didomi, Sourcepoint, Quantcast, Usercentrics and
+  more, or any clearly labelled accept button) and shows both views. The
+  Guardian, scanned from Dublin: 1 third party before consent, 100 after.
+- **Scan from the US or the EU.** `/api/scan` runs in Washington, D.C.;
+  `/api/scan-eu` runs in Dublin, where GDPR consent banners appear.
+- **Rate limited.** 10 new scans a minute per IP (cached results don't count),
+  shared by scans and badges.
 - **Live progress.** Scans stream their stages and a running request count.
 - **Shareable results.** `/?url=example.com` runs the scan on load.
 - **JSON API.** `GET /api/scan?url=example.com`, or send
@@ -72,8 +80,9 @@ If Chromium can't start, Spillcheck falls back to a static scan of the HTML and
 stylesheets and says so in the report.
 
 **Location matters.** Sites often load fewer trackers for visitors in the EU,
-where consent laws apply. Reports say where the scan ran. Spillcheck doesn't
-click consent banners, so it shows what a visitor gets before choosing.
+where consent laws apply. Choose where to scan from; reports say where the scan
+ran. The headline grade (and badges) are for what a visitor gets before touching
+the cookie banner; "After accepting" shows everything loaded once they do.
 
 ## Safety
 

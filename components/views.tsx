@@ -80,6 +80,7 @@ const STAGES: { id: Stage; label: string }[] = [
   { id: 'launch', label: 'Starting a browser' },
   { id: 'load', label: 'Loading the page' },
   { id: 'watch', label: 'Watching network requests' },
+  { id: 'consent', label: 'Accepting the cookie banner' },
   { id: 'grade', label: 'Grading' },
 ];
 
@@ -123,16 +124,20 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
 /* Form ----------------------------------------------------------------------- */
 
+export type ScanFrom = 'us' | 'eu';
+
 type FormProps = {
   value: string;
   onChange: (v: string) => void;
   onSubmit: () => void;
   busy?: boolean;
   invalid?: boolean;
+  from?: ScanFrom;
+  onFromChange?: (from: ScanFrom) => void;
 };
 
 export const ScanForm = forwardRef<HTMLInputElement, FormProps>(function ScanForm(
-  { value, onChange, onSubmit, busy, invalid },
+  { value, onChange, onSubmit, busy, invalid, from = 'us', onFromChange },
   ref,
 ) {
   return (
@@ -166,6 +171,23 @@ export const ScanForm = forwardRef<HTMLInputElement, FormProps>(function ScanFor
           {busy ? 'Scanning' : 'Scan'}
         </button>
       </div>
+      {onFromChange && (
+        <div className="scan-from">
+          <span id="scan-from-label">Scan from</span>
+          <div className="segmented small" role="radiogroup" aria-labelledby="scan-from-label">
+            {(
+              [
+                ['us', 'United States'],
+                ['eu', 'EU (Dublin)'],
+              ] as const
+            ).map(([id, label]) => (
+              <button key={id} type="button" role="radio" aria-checked={from === id} onClick={() => onFromChange(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {invalid && (
         <p className="field-error" id="url-error" role="alert">
           <CircleAlert size={16} strokeWidth={STROKE} aria-hidden />
@@ -315,7 +337,7 @@ export function ErrorView({
 /* Result --------------------------------------------------------------------- */
 
 export function ResultView({
-  report,
+  report: full,
   shareUrl,
   autoFocus = true,
 }: {
@@ -327,7 +349,15 @@ export function ResultView({
   // Move focus to the result so screen readers announce it.
   useEffect(() => {
     if (autoFocus) heading.current?.focus();
-  }, [report, autoFocus]);
+  }, [full, autoFocus]);
+
+  // Before consent is the headline (what every visitor gets); after accepting
+  // shows everything the site loads once it's allowed to.
+  const [phase, setPhase] = useState<'before' | 'after'>('before');
+  useEffect(() => setPhase('before'), [full]);
+  const consent = full.consent;
+  const report: Report =
+    phase === 'after' && consent.status === 'accepted' ? { ...full, ...consent.after } : full;
 
   const host = new URL(report.finalUrl).hostname;
   const total = report.parties.length;
@@ -348,6 +378,15 @@ export function ResultView({
             <span className="hero-number">{total}</span>{' '}
             <span className="hero-label">{total === 1 ? 'third party' : 'third parties'}</span>
           </h2>
+          {consent.status === 'accepted' && (
+            <ConsentSwitch
+              phase={phase}
+              onChange={setPhase}
+              before={full.parties.length}
+              after={consent.after.parties.length}
+              tool={consent.tool}
+            />
+          )}
           <div className="summary-grade">
             <GradeBadge grade={report.grade} size="large" />
             <p className="summary-meta">
@@ -374,6 +413,12 @@ export function ResultView({
               <dd>{report.cookies.firstParty.length}</dd>
             </div>
           </dl>
+          {consent.status === 'not-found' && (
+            <p className="consent-note">
+              <Cookie size={14} strokeWidth={STROKE} aria-hidden />
+              No cookie banner was found to accept, or Spillcheck didn’t recognise it.
+            </p>
+          )}
           <p className="scan-source">
             {report.mode === 'browser' ? 'Real-browser scan' : 'Static scan'} from {region},{' '}
             {/* Formatted in the reader’s locale, which can differ from the server’s. */}
@@ -384,7 +429,8 @@ export function ResultView({
           {shareUrl && <CopyButton label="Copy link" icon="link" text={shareUrl} />}
         </section>
 
-        <BadgeSection report={report} />
+        {/* Badges always show the before-consent grade, whichever view is open. */}
+        <BadgeSection report={full} />
 
         {total > 0 && (
           <nav className="index" aria-label="Categories">
@@ -543,13 +589,50 @@ function BadgeSection({ report }: { report: Report }) {
         <BadgeCheck size={18} strokeWidth={STROKE} aria-hidden />
         Add a badge
       </h3>
-      <p className="badge-intro">Show this grade in a README or site footer. It links back to this report.</p>
+      <p className="badge-intro">
+        Show this grade in a README or site footer. It links back to this report.
+        {report.consent.status === 'accepted' && ' Badges use the grade before consent.'}
+      </p>
       <GradeBadge grade={report.grade} size="medium" />
       <div className="badge-actions">
         <CopyButton label="Markdown" text={`[![Spillcheck privacy grade](${img})](${page})`} />
         <CopyButton label="HTML" text={`<a href="${page}"><img src="${img}" alt="Spillcheck privacy grade"></a>`} />
       </div>
     </section>
+  );
+}
+
+function ConsentSwitch({
+  phase,
+  onChange,
+  before,
+  after,
+  tool,
+}: {
+  phase: 'before' | 'after';
+  onChange: (p: 'before' | 'after') => void;
+  before: number;
+  after: number;
+  tool: string;
+}) {
+  const added = after - before;
+  return (
+    <div className="consent">
+      <div className="segmented small" role="radiogroup" aria-label="Cookie consent">
+        <button role="radio" aria-checked={phase === 'before'} onClick={() => onChange('before')}>
+          Before consent
+        </button>
+        <button role="radio" aria-checked={phase === 'after'} onClick={() => onChange('after')}>
+          After accepting
+        </button>
+      </div>
+      <p className="consent-note">
+        <Cookie size={14} strokeWidth={STROKE} aria-hidden />
+        {added > 0
+          ? `Accepting ${tool === 'a cookie banner' ? 'the cookie banner' : tool} adds ${plural(added, 'third party', 'third parties')}.`
+          : `Accepting ${tool === 'a cookie banner' ? 'the cookie banner' : tool} adds no third parties.`}
+      </p>
+    </div>
   );
 }
 

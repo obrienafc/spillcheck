@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Stage } from '@/lib/browser-scan';
 import type { Report } from '@/lib/scan';
 import type { ClientErrorCode } from './icons';
-import { ErrorView, IdleView, ResultView, ScanForm, ScanningView, Shell } from './views';
+import { ErrorView, IdleView, ResultView, ScanForm, type ScanFrom, ScanningView, Shell } from './views';
 
 type State =
   | { status: 'idle' }
@@ -20,11 +20,12 @@ type Line =
 export function Scanner() {
   const [input, setInput] = useState('');
   const [invalid, setInvalid] = useState(false);
+  const [from, setFrom] = useState<ScanFrom>('us');
   const [state, setState] = useState<State>({ status: 'idle' });
   const inputRef = useRef<HTMLInputElement>(null);
   const abort = useRef<AbortController | null>(null);
 
-  const run = useCallback(async (raw: string, push = true) => {
+  const run = useCallback(async (raw: string, push = true, region: ScanFrom = 'us') => {
     const url = raw.trim();
     if (!url) {
       setInvalid(true);
@@ -36,6 +37,8 @@ export function Scanner() {
     if (push) {
       const next = new URL(window.location.href);
       next.searchParams.set('url', url);
+      if (region === 'eu') next.searchParams.set('from', 'eu');
+      else next.searchParams.delete('from');
       window.history.pushState(null, '', next);
     }
 
@@ -64,10 +67,16 @@ export function Scanner() {
     };
 
     try {
-      const res = await fetch(`/api/scan?url=${encodeURIComponent(url)}`, {
+      const endpoint = region === 'eu' ? '/api/scan-eu' : '/api/scan';
+      const res = await fetch(`${endpoint}?url=${encodeURIComponent(url)}`, {
         headers: { Accept: 'application/x-ndjson' },
         signal: controller.signal,
       });
+      // The Firewall (if enabled) answers over-limit requests with a plain 429.
+      if (res.status === 429 && !res.headers.get('content-type')?.includes('ndjson')) {
+        setState({ status: 'error', url, code: 'rate-limited', message: '' });
+        return;
+      }
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
@@ -94,8 +103,11 @@ export function Scanner() {
   // Shareable links: /?url=example.com runs the scan on load; back/forward re-runs.
   useEffect(() => {
     const fromLocation = () => {
-      const url = new URLSearchParams(window.location.search).get('url');
-      if (url) run(url, false);
+      const params = new URLSearchParams(window.location.search);
+      const url = params.get('url');
+      const region: ScanFrom = params.get('from') === 'eu' ? 'eu' : 'us';
+      setFrom(region);
+      if (url) run(url, false, region);
       else {
         abort.current?.abort();
         setInput('');
@@ -130,14 +142,16 @@ export function Scanner() {
             setInput(v);
             if (invalid) setInvalid(false);
           }}
-          onSubmit={() => run(input)}
+          onSubmit={() => run(input, true, from)}
+          from={from}
+          onFromChange={setFrom}
           busy={state.status === 'scanning'}
           invalid={invalid}
         />
       </header>
 
       <main className="main" key={state.status}>
-        {state.status === 'idle' && <IdleView onExample={(ex) => run(ex)} />}
+        {state.status === 'idle' && <IdleView onExample={(ex) => run(ex, true, from)} />}
         {state.status === 'scanning' && (
           <ScanningView
             url={state.url}
@@ -150,7 +164,7 @@ export function Scanner() {
           <ErrorView
             code={state.code}
             message={state.message}
-            onRetry={() => run(state.url, false)}
+            onRetry={() => run(state.url, false, from)}
             onEdit={() => {
               inputRef.current?.focus();
               inputRef.current?.select();
