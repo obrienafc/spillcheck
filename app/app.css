@@ -614,10 +614,20 @@ svg {
   }
 }
 
-/* Narrow windows: the index is redundant with the list right below it. */
+/* Narrow windows: the index is redundant with the list right below it, and
+   the badge moves after the list so it doesn't interrupt the results. */
 @media (max-width: 63.99rem) {
   .index {
     display: none;
+  }
+  .summary-column {
+    display: contents;
+  }
+  .detail-column {
+    order: 1;
+  }
+  .badge-section {
+    order: 2;
   }
   .result-layout {
     max-width: 45rem;
