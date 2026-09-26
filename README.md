@@ -24,8 +24,26 @@ and weighed, and the page gets a privacy grade from A+ to F.
   count half.
 - **Shareable results.** `/?url=example.com` runs the scan on load.
 - **JSON API.** `GET /api/scan?url=example.com`.
+- **Badges.** Show a site's grade in a README or footer (see below).
 - **Every state in one place.** `/states` renders the empty, invalid, loading,
   result and error states from saved fixtures, for design review.
+
+## Badges
+
+[![Spillcheck privacy grade](https://spillcheck.patrickob.tech/badge?url=patrickob.tech)](https://spillcheck.patrickob.tech/?url=patrickob.tech)
+
+```markdown
+[![Spillcheck privacy grade](https://spillcheck.patrickob.tech/badge?url=example.com)](https://spillcheck.patrickob.tech/?url=example.com)
+```
+
+| Parameter | Default   | Description |
+| --------- | --------- | ----------- |
+| `url`     | required  | The page to grade. |
+| `label`   | `privacy` | Left-hand text, up to 24 characters. |
+| `detail`  | off       | `detail=1` adds the count: `B · 2 third parties`. |
+
+Badges are cached for a day. If a scan fails, the badge shows `unknown` rather
+than a broken image. Every result page has copy-ready Markdown and HTML.
 
 ## How it works
 

@@ -661,6 +661,31 @@ svg {
   word-break: break-all;
 }
 
+.badge-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2) var(--s3);
+  padding: 12px var(--s3);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.badge-box img {
+  display: block;
+  height: 20px;
+}
+
+.badge-actions {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.badge-actions .button.plain {
+  margin-left: 0;
+}
+
 .legend {
   margin: var(--s4) 0 0;
   color: var(--text-2);

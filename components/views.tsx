@@ -2,10 +2,12 @@
 
 import {
   ArrowUpRight,
+  BadgeCheck,
   Check,
   ChevronRight,
   CircleAlert,
   CircleDashed,
+  Copy,
   Info,
   Link as LinkIcon,
   LoaderCircle,
@@ -367,6 +369,8 @@ export function ResultView({
         );
       })}
 
+      <BadgeSection report={report} />
+
       {total > 0 && (
         <p className="legend">
           <strong>Loaded</strong> means the page’s HTML or CSS requests it directly.{' '}
@@ -376,6 +380,60 @@ export function ResultView({
         </p>
       )}
     </div>
+  );
+}
+
+const PUBLIC_ORIGIN = 'https://spillcheck.patrickob.tech';
+
+function BadgeSection({ report }: { report: Report }) {
+  const [origin, setOrigin] = useState(PUBLIC_ORIGIN);
+  useEffect(() => setOrigin(window.location.origin), []);
+
+  const final = new URL(report.finalUrl);
+  const target = final.host + (final.pathname === '/' ? '' : final.pathname);
+  const q = encodeURIComponent(target);
+  const img = `${origin}/badge?url=${q}`;
+  const page = `${origin}/?url=${q}`;
+  const snippets = {
+    Markdown: `[![Spillcheck privacy grade](${img})](${page})`,
+    HTML: `<a href="${page}"><img src="${img}" alt="Spillcheck privacy grade"></a>`,
+  };
+
+  return (
+    <section className="group" aria-labelledby="badge-heading">
+      <header className="group-head">
+        <BadgeCheck size={20} strokeWidth={STROKE} aria-hidden />
+        <h3 id="badge-heading">Add a badge</h3>
+      </header>
+      <p className="group-why">Show this grade in a README or site footer. It links back to this report.</p>
+      <div className="badge-box">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={`/badge?url=${q}`} alt={`Privacy grade ${report.grade}`} height={20} />
+        <div className="badge-actions">
+          {Object.entries(snippets).map(([name, text]) => (
+            <CopyButton key={name} label={`Copy ${name}`} text={text} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CopyButton({ label, text }: { label: string; text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      className="button plain"
+      onClick={() =>
+        navigator.clipboard.writeText(text).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        })
+      }
+    >
+      {copied ? <Check size={16} strokeWidth={STROKE} aria-hidden /> : <Copy size={16} strokeWidth={STROKE} aria-hidden />}
+      {copied ? 'Copied' : label}
+    </button>
   );
 }
 
