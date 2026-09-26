@@ -2,9 +2,20 @@ import dns from 'node:dns';
 import net from 'node:net';
 import { Agent, fetch as undiciFetch } from 'undici';
 
+export type ErrorCode =
+  | 'invalid'
+  | 'private'
+  | 'timeout'
+  | 'unreachable'
+  | 'blocked'
+  | 'not-html'
+  | 'redirects'
+  | 'failed';
+
 export class ScanError extends Error {
   constructor(
     message: string,
+    public code: ErrorCode = 'invalid',
     public status = 400,
   ) {
     super(message);
@@ -59,7 +70,7 @@ const agent = new Agent({
         const list = addresses as dns.LookupAddress[];
         const blocked = list.find((a) => isPrivateAddress(a.address));
         if (blocked || list.length === 0) {
-          return callback(new ScanError('That address points to a private network.'), '', 4);
+          return callback(new ScanError('That address points to a private network.', 'private'), '', 4);
         }
         if ((options as dns.LookupOptions).all) return callback(null, list as never, 4);
         callback(null, list[0].address, list[0].family);
@@ -86,10 +97,10 @@ export function assertPublicUrl(raw: string): URL {
   if (url.username || url.password) throw new ScanError('URLs with credentials aren’t allowed.');
   const host = url.hostname.replace(/^\[|\]$/g, '');
   if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.internal')) {
-    throw new ScanError('That address points to a private network.');
+    throw new ScanError('That address points to a private network.', 'private');
   }
   if (net.isIP(host) && isPrivateAddress(host)) {
-    throw new ScanError('That address points to a private network.');
+    throw new ScanError('That address points to a private network.', 'private');
   }
   return url;
 }
@@ -123,8 +134,8 @@ export async function safeFetch(
       const cause = (err as { cause?: unknown }).cause;
       if (cause instanceof ScanError) throw cause;
       if (err instanceof ScanError) throw err;
-      if ((err as Error).name === 'TimeoutError') throw new ScanError('The site took too long to respond.', 504);
-      throw new ScanError('Couldn’t connect to that site.', 502);
+      if ((err as Error).name === 'TimeoutError') throw new ScanError('The site took too long to respond.', 'timeout', 504);
+      throw new ScanError('Couldn’t connect to that site.', 'unreachable', 502);
     }
 
     if (res.status >= 300 && res.status < 400 && res.headers.get('location')) {
@@ -158,5 +169,5 @@ export async function safeFetch(
     };
   }
 
-  throw new ScanError('Too many redirects.');
+  throw new ScanError('Too many redirects.', 'redirects', 502);
 }

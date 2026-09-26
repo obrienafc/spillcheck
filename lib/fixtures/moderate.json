@@ -1,0 +1,61 @@
+{
+ "url": "html5up.net",
+ "finalUrl": "https://html5up.net/",
+ "scannedAt": "2026-09-26T17:18:32.544Z",
+ "status": 200,
+ "score": 86,
+ "grade": "B",
+ "firstPartyRequests": 58,
+ "cookies": [],
+ "parties": [
+  {
+   "id": "Google Tag Manager",
+   "name": "Google Tag Manager",
+   "company": "Google",
+   "category": "tag-manager",
+   "hosts": [
+    "www.googletagmanager.com"
+   ],
+   "kinds": [
+    "script"
+   ],
+   "requests": 1,
+   "referencedOnly": false,
+   "samples": [
+    "https://www.googletagmanager.com/gtag/js?id=UA-838659-4"
+   ]
+  },
+  {
+   "id": "Google Fonts",
+   "name": "Google Fonts",
+   "company": "Google",
+   "category": "fonts",
+   "hosts": [
+    "fonts.googleapis.com",
+    "fonts.gstatic.com"
+   ],
+   "kinds": [
+    "stylesheet",
+    "font"
+   ],
+   "requests": 22,
+   "referencedOnly": false,
+   "samples": [
+    "https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,600,700",
+    "https://fonts.gstatic.com/s/sourcesanspro/v23/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwmhdu3cOWxy40.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v23/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwkxdu3cOWxy40.woff2"
+   ]
+  }
+ ],
+ "companies": [
+  "Google"
+ ],
+ "googleFonts": {
+  "families": [
+   "Source Sans Pro"
+  ]
+ },
+ "notes": [
+  "A tag manager is present, so more scripts are probably loaded at runtime."
+ ]
+}

@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import './base.css';
-import './spillcheck.css';
+import './app.css';
 
 export const metadata: Metadata = {
   title: 'Spillcheck: what does your website spill?',

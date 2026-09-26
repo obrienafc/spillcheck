@@ -60,7 +60,7 @@ function normalizeInput(input: string) {
   if (!trimmed) throw new ScanError('Enter a URL to scan.');
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed) && !/^[^/]+:\d/.test(trimmed)) {
-    throw new ScanError('Only http and https URLs can be scanned.');
+    throw new ScanError('Only http and https URLs can be scanned.', 'invalid');
   }
   return `https://${trimmed}`;
 }
@@ -68,10 +68,14 @@ function normalizeInput(input: string) {
 export async function scan(input: string): Promise<Report> {
   const page = await safeFetch(normalizeInput(input));
   if (page.status >= 400) {
-    throw new ScanError(`The site responded with HTTP ${page.status}.`, 502);
+    throw new ScanError(
+      `The site responded with HTTP ${page.status}.`,
+      page.status === 401 || page.status === 403 || page.status === 429 ? 'blocked' : 'unreachable',
+      502,
+    );
   }
   if (!/html|xml/i.test(page.contentType) && !/^\s*</.test(page.body)) {
-    throw new ScanError('That URL didn’t return a web page.', 422);
+    throw new ScanError('That URL didn’t return a web page.', 'not-html', 422);
   }
 
   const notes: string[] = [];

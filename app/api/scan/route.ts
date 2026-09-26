@@ -15,9 +15,14 @@ export async function GET(request: Request) {
       },
     });
   } catch (err) {
-    const status = err instanceof ScanError ? err.status : 500;
-    const message = err instanceof ScanError ? err.message : 'Something went wrong while scanning.';
-    if (!(err instanceof ScanError)) console.error(err);
-    return Response.json({ error: message }, { status, headers: { 'Cache-Control': 'no-store' } });
+    const known = err instanceof ScanError;
+    if (!known) console.error(err);
+    return Response.json(
+      {
+        error: known ? err.message : 'Something went wrong while scanning.',
+        code: known ? err.code : 'failed',
+      },
+      { status: known ? err.status : 500, headers: { 'Cache-Control': 'no-store' } },
+    );
   }
 }

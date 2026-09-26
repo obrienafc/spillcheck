@@ -6,7 +6,7 @@ Enter a URL and Spillcheck lists every third party the page talks to: fonts,
 analytics, ad pixels, session replay, embeds, CDNs. Each one is named, explained
 and weighed, and the page gets a privacy grade from A+ to F.
 
-![Spillcheck grading a page that loads Google Fonts and Google Tag Manager](docs/screenshot.png)
+![Spillcheck showing a page that contacts 2 third parties: Google Fonts and Google Tag Manager](docs/screenshot.png)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fobrienafc%2Fspillcheck&project-name=spillcheck)
 
@@ -24,6 +24,8 @@ and weighed, and the page gets a privacy grade from A+ to F.
   count half.
 - **Shareable results.** `/?url=example.com` runs the scan on load.
 - **JSON API.** `GET /api/scan?url=example.com`.
+- **Every state in one place.** `/states` renders the empty, invalid, loading,
+  result and error states from saved fixtures, for design review.
 
 ## How it works
 
