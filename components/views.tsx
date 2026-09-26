@@ -5,24 +5,30 @@ import {
   BadgeCheck,
   Check,
   ChevronRight,
+  Circle,
   CircleAlert,
   CircleDashed,
+  Cookie,
   Copy,
+  Globe,
   Info,
   Link as LinkIcon,
   LoaderCircle,
+  MonitorSmartphone,
   RotateCcw,
   ScanSearch,
   ShieldCheck,
   Type,
 } from 'lucide-react';
 import { forwardRef, useEffect, useRef, useState } from 'react';
+import type { Stage } from '@/lib/browser-scan';
 import { CATEGORIES, type Category } from '@/lib/categories';
 import type { Kind } from '@/lib/extract';
 import type { Party, Report } from '@/lib/scan';
 import { CATEGORY_ICONS, type ClientErrorCode, ERRORS, STROKE } from './icons';
 
 export const EXAMPLES = ['bbc.co.uk', 'cnn.com', 'wikipedia.org', 'getbootstrap.com'];
+const PUBLIC_ORIGIN = 'https://spillcheck.patrickob.tech';
 
 const KIND_LABELS: Record<Kind, string> = {
   script: 'script',
@@ -31,6 +37,9 @@ const KIND_LABELS: Record<Kind, string> = {
   image: 'image',
   frame: 'iframe',
   media: 'media',
+  fetch: 'data request',
+  beacon: 'beacon',
+  websocket: 'websocket',
   connection: 'preconnect',
   form: 'form target',
   'script-reference': 'inline script',
@@ -46,13 +55,48 @@ const GRADE_WORDS: Record<Report['grade'], string> = {
   F: 'extensive tracking',
 };
 
+const REGIONS: Record<string, string> = {
+  iad1: 'Washington, D.C.',
+  cle1: 'Cleveland',
+  pdx1: 'Portland',
+  sfo1: 'San Francisco',
+  dub1: 'Dublin',
+  lhr1: 'London',
+  cdg1: 'Paris',
+  fra1: 'Frankfurt',
+  arn1: 'Stockholm',
+  hnd1: 'Tokyo',
+  icn1: 'Seoul',
+  sin1: 'Singapore',
+  syd1: 'Sydney',
+  bom1: 'Mumbai',
+  gru1: 'São Paulo',
+  cpt1: 'Cape Town',
+  local: 'a local machine',
+};
+
+const STAGES: { id: Stage; label: string }[] = [
+  { id: 'launch', label: 'Starting a browser' },
+  { id: 'load', label: 'Loading the page' },
+  { id: 'watch', label: 'Watching network requests' },
+  { id: 'grade', label: 'Grading' },
+];
+
+export function formatBytes(n: number) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+}
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
+
 /* Shell ---------------------------------------------------------------------- */
 
 export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <nav className="navbar">
-        <div className="wrap navbar-inner">
+        <div className="navbar-inner">
           <a className="brand" href="/">
             <ScanSearch size={22} strokeWidth={STROKE} aria-hidden />
             Spillcheck
@@ -64,9 +108,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </nav>
       {children}
-      <footer className="footer wrap">
-        Spillcheck reads a page’s HTML and stylesheets. It doesn’t run JavaScript, so scripts can
-        load more than shown. Sister project:{' '}
+      <footer className="footer">
+        Spillcheck loads each page in a real browser and records every request it makes. Results are
+        cached for six hours. Sister project:{' '}
         <a href="https://glyphyard.patrickob.tech" target="_blank" rel="noreferrer">
           Glyphyard
         </a>
@@ -135,7 +179,7 @@ export const ScanForm = forwardRef<HTMLInputElement, FormProps>(function ScanFor
 
 export function IdleView({ onExample }: { onExample: (url: string) => void }) {
   return (
-    <div className="state idle">
+    <div className="idle">
       <p className="examples">
         Try{' '}
         {EXAMPLES.map((ex, i) => (
@@ -149,54 +193,73 @@ export function IdleView({ onExample }: { onExample: (url: string) => void }) {
       </p>
       <ul className="how">
         <li>
-          <ScanSearch size={20} strokeWidth={STROKE} aria-hidden />
-          <div>
-            <h3>Reads the page</h3>
-            <p>Fetches the HTML and its stylesheets from Spillcheck’s server, like a browser would.</p>
-          </div>
+          <MonitorSmartphone size={22} strokeWidth={STROKE} aria-hidden />
+          <h3>Loads it for real</h3>
+          <p>Opens the page in a headless browser, scrolls it, and records every request it makes.</p>
         </li>
         <li>
-          <Info size={20} strokeWidth={STROKE} aria-hidden />
-          <div>
-            <h3>Names every party</h3>
-            <p>Matches each outside domain against 160+ known trackers, fonts, CDNs and embeds.</p>
-          </div>
+          <Info size={22} strokeWidth={STROKE} aria-hidden />
+          <h3>Names every party</h3>
+          <p>Matches each outside domain against 170+ known trackers, fonts, CDNs and embeds.</p>
         </li>
         <li>
-          <ShieldCheck size={20} strokeWidth={STROKE} aria-hidden />
-          <div>
-            <h3>Grades the page</h3>
-            <p>Ad pixels and session replay cost the most. Privacy-friendly tools cost the least.</p>
-          </div>
+          <ShieldCheck size={22} strokeWidth={STROKE} aria-hidden />
+          <h3>Grades the page</h3>
+          <p>Ad pixels, session replay and third-party cookies cost the most. Privacy-friendly tools cost the least.</p>
         </li>
       </ul>
     </div>
   );
 }
 
-/* Loading -------------------------------------------------------------------- */
+/* Scanning ------------------------------------------------------------------- */
 
-export function LoadingView({ url }: { url: string }) {
+export function ScanningView({
+  url,
+  stage,
+  requests,
+  thirdPartyHosts,
+}: {
+  url: string;
+  stage: Stage;
+  requests: number;
+  thirdPartyHosts: number;
+}) {
+  const current = STAGES.findIndex((s) => s.id === stage);
   return (
-    <div className="state" aria-busy="true">
-      <p className="status" role="status">
-        <LoaderCircle className="spin" size={16} strokeWidth={STROKE} aria-hidden />
-        Scanning {url}…
+    <div className="single" aria-busy="true">
+      <section className="summary">
+        <p className="summary-host">{url}</p>
+        <p className="hero-number neutral" aria-hidden>
+          {requests}
+        </p>
+        <p className="hero-label">requests observed</p>
+        <p className="summary-meta">
+          {thirdPartyHosts > 0 ? `${plural(thirdPartyHosts, 'outside host')} so far` : 'Waiting for the page'}
+        </p>
+        <ol className="stages">
+          {STAGES.map((s, i) => {
+            const state = i < current ? 'done' : i === current ? 'active' : 'todo';
+            return (
+              <li key={s.id} data-state={state}>
+                {state === 'done' ? (
+                  <Check size={16} strokeWidth={STROKE} aria-hidden />
+                ) : state === 'active' ? (
+                  <LoaderCircle className="spin" size={16} strokeWidth={STROKE} aria-hidden />
+                ) : (
+                  <Circle size={16} strokeWidth={STROKE} aria-hidden />
+                )}
+                <span>{s.label}</span>
+                {state === 'done' && <span className="visually-hidden">, done</span>}
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+      <p className="visually-hidden" role="status">
+        {STAGES[current]?.label ?? 'Scanning'}. {requests} requests observed.
       </p>
-      <div className="result skeleton" aria-hidden>
-        <span className="bone w-30" />
-        <span className="bone hero-bone" />
-        <span className="bone w-50" />
-        <span className="bone w-70" />
-      </div>
-      <ul className="list skeleton" aria-hidden>
-        {[60, 45, 70].map((w) => (
-          <li key={w} className="skeleton-row">
-            <span className="bone" style={{ width: `${w}%` }} />
-            <span className="bone small w-30" />
-          </li>
-        ))}
-      </ul>
+      <p className="scan-hint">Real-browser scans take 5 to 20 seconds.</p>
     </div>
   );
 }
@@ -224,7 +287,7 @@ export function ErrorView({
   }, [autoFocus]);
 
   return (
-    <div className="state error-state" role="alert">
+    <div className="single error-state" role="alert">
       <Icon className="state-icon" size={32} strokeWidth={STROKE} aria-hidden />
       <h2 ref={heading} tabIndex={-1}>
         {info.title}
@@ -259,7 +322,6 @@ export function ResultView({
   shareUrl?: string;
   autoFocus?: boolean;
 }) {
-  const [copied, setCopied] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   // Move focus to the result so screen readers announce it.
   useEffect(() => {
@@ -268,176 +330,144 @@ export function ResultView({
 
   const host = new URL(report.finalUrl).hostname;
   const total = report.parties.length;
-  const loaded = report.parties.filter((p) => !p.referencedOnly).length;
   const groups = new Map<Category, Party[]>();
   for (const p of report.parties) groups.set(p.category, [...(groups.get(p.category) ?? []), p]);
+  const hasReferenced = report.parties.some((p) => p.referencedOnly);
+  const region = REGIONS[report.region] ?? report.region;
 
   return (
-    <div className="state">
-      <section className="result" aria-labelledby="result-heading">
-        <a className="result-host" href={report.finalUrl} target="_blank" rel="noreferrer">
-          {host}
-          <ArrowUpRight size={14} strokeWidth={STROKE} aria-hidden />
-        </a>
-        <h2 id="result-heading" ref={heading} tabIndex={-1}>
-          <span className="hero-number">{total}</span>{" "}
-          <span className="hero-label">
-            {total === 1 ? 'third party contacted' : 'third parties contacted'}
-          </span>
-        </h2>
-        <p className="result-meta">
-          Grade {report.grade}, {GRADE_WORDS[report.grade]}
-          <span aria-hidden> · </span>
-          Score {report.score}/100
-          {total > 0 && (
-            <>
-              <span aria-hidden> · </span>
-              {loaded} loaded, {total - loaded} referenced
-            </>
-          )}
-          <span aria-hidden> · </span>
-          {report.cookies.length} {report.cookies.length === 1 ? 'cookie' : 'cookies'} set
-        </p>
-        {shareUrl && (
-          <button
-            className="button plain"
-            onClick={() =>
-              navigator.clipboard.writeText(shareUrl).then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
-              })
-            }
-          >
-            {copied ? (
-              <Check size={16} strokeWidth={STROKE} aria-hidden />
-            ) : (
-              <LinkIcon size={16} strokeWidth={STROKE} aria-hidden />
+    <div className="result-layout">
+      <aside className="summary-column">
+        <section className="summary" aria-labelledby="result-heading">
+          <a className="summary-host" href={report.finalUrl} target="_blank" rel="noreferrer">
+            {host}
+            <ArrowUpRight size={14} strokeWidth={STROKE} aria-hidden />
+          </a>
+          <h2 id="result-heading" ref={heading} tabIndex={-1}>
+            <span className="hero-number">{total}</span>{' '}
+            <span className="hero-label">{total === 1 ? 'third party' : 'third parties'}</span>
+          </h2>
+          <p className="summary-meta">
+            Grade {report.grade}, {GRADE_WORDS[report.grade]} · {report.score}/100
+          </p>
+          <dl className="facts">
+            <div>
+              <dt>Third-party requests</dt>
+              <dd>{report.requests.thirdParty.toLocaleString()}</dd>
+            </div>
+            {report.mode === 'browser' && (
+              <div>
+                <dt>Data from third parties</dt>
+                <dd>{formatBytes(report.thirdPartyBytes)}</dd>
+              </div>
             )}
-            {copied ? 'Link copied' : 'Copy link'}
-          </button>
-        )}
-      </section>
+            <div>
+              <dt>Third-party cookies</dt>
+              <dd>{report.cookies.thirdParty.length}</dd>
+            </div>
+            <div>
+              <dt>First-party cookies</dt>
+              <dd>{report.cookies.firstParty.length}</dd>
+            </div>
+          </dl>
+          <p className="scan-source">
+            {report.mode === 'browser' ? 'Real-browser scan' : 'Static scan'} from {region},{' '}
+            <time dateTime={report.scannedAt}>
+              {new Date(report.scannedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+            </time>
+          </p>
+          {shareUrl && <CopyButton label="Copy link" icon="link" text={shareUrl} />}
+        </section>
 
-      {total === 0 && (
-        <p className="notice">
-          <ShieldCheck size={18} strokeWidth={STROKE} aria-hidden />
-          <span>
-            This page only talks to its own domain. Nothing Spillcheck can see is shared with
-            anyone else.
-          </span>
-        </p>
-      )}
-
-      {report.googleFonts && (
-        <p className="notice">
-          <Type size={18} strokeWidth={STROKE} aria-hidden />
-          <span>
-            {report.googleFonts.families.length
-              ? `${report.googleFonts.families.join(', ')} ${report.googleFonts.families.length === 1 ? 'is' : 'are'} loaded from Google Fonts, which sees every visitor’s IP address. `
-              : 'This page connects to Google Fonts, which sees every visitor’s IP address. '}
-            <a href="https://glyphyard.patrickob.tech" target="_blank" rel="noreferrer">
-              Self-host them with Glyphyard
-            </a>
-            .
-          </span>
-        </p>
-      )}
-
-      {report.notes.map((n) => (
-        <p key={n} className="notice">
-          <Info size={18} strokeWidth={STROKE} aria-hidden />
-          <span>{n}</span>
-        </p>
-      ))}
-
-      {[...groups.entries()].map(([category, parties]) => {
-        const Icon = CATEGORY_ICONS[category];
-        return (
-          <section key={category} className="group" aria-labelledby={`g-${category}`}>
-            <header className="group-head">
-              <Icon size={20} strokeWidth={STROKE} aria-hidden />
-              <h3 id={`g-${category}`}>{CATEGORIES[category].label}</h3>
-              <span className="group-count">{parties.length}</span>
-            </header>
-            <p className="group-why">{CATEGORIES[category].why}</p>
-            <ul className="list">
-              {parties.map((p) => (
-                <PartyRow key={p.id} party={p} />
-              ))}
+        {total > 0 && (
+          <nav className="index" aria-label="Categories">
+            <ul>
+              {[...groups.entries()].map(([category, parties]) => {
+                const Icon = CATEGORY_ICONS[category];
+                return (
+                  <li key={category}>
+                    <a href={`#g-${category}`}>
+                      <Icon size={18} strokeWidth={STROKE} aria-hidden />
+                      <span>{CATEGORIES[category].label}</span>
+                      <span className="index-count">{parties.length}</span>
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
-          </section>
-        );
-      })}
+          </nav>
+        )}
 
-      <BadgeSection report={report} />
+        <BadgeSection report={report} />
+      </aside>
 
-      {total > 0 && (
-        <p className="legend">
-          <strong>Loaded</strong> means the page’s HTML or CSS requests it directly.{' '}
-          <strong>Referenced</strong> means the domain appears in an inline script, a preconnect
-          hint or a form target. It’s likely contacted, but Spillcheck can’t confirm it without
-          running the page, so it counts half.
-        </p>
-      )}
+      <div className="detail-column">
+        {total === 0 && (
+          <p className="notice">
+            <ShieldCheck size={18} strokeWidth={STROKE} aria-hidden />
+            <span>This page only talks to its own domain. Nothing it loads is shared with anyone else.</span>
+          </p>
+        )}
+
+        {report.googleFonts && (
+          <p className="notice">
+            <Type size={18} strokeWidth={STROKE} aria-hidden />
+            <span>
+              {report.googleFonts.families.length
+                ? `${report.googleFonts.families.join(', ')} ${report.googleFonts.families.length === 1 ? 'is' : 'are'} loaded from Google Fonts, which sees every visitor’s IP address. `
+                : 'This page loads Google Fonts, which sees every visitor’s IP address. '}
+              <a href="https://glyphyard.patrickob.tech" target="_blank" rel="noreferrer">
+                Self-host them with Glyphyard
+              </a>
+              .
+            </span>
+          </p>
+        )}
+
+        {report.notes.map((n) => (
+          <p key={n} className="notice">
+            <Info size={18} strokeWidth={STROKE} aria-hidden />
+            <span>{n}</span>
+          </p>
+        ))}
+
+        {[...groups.entries()].map(([category, parties]) => {
+          const Icon = CATEGORY_ICONS[category];
+          return (
+            <section key={category} className="group" id={`g-${category}`} aria-labelledby={`g-${category}-h`}>
+              <header className="group-head">
+                <Icon size={20} strokeWidth={STROKE} aria-hidden />
+                <h3 id={`g-${category}-h`}>{CATEGORIES[category].label}</h3>
+                <span className="group-count">{parties.length}</span>
+              </header>
+              <p className="group-why">{CATEGORIES[category].why}</p>
+              <ul className="list">
+                {parties.map((p) => (
+                  <PartyRow key={p.id} party={p} showBytes={report.mode === 'browser'} />
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+
+        {hasReferenced && (
+          <p className="legend">
+            <strong>Referenced</strong> means the domain appears in the page’s code but wasn’t seen
+            loading. It counts half.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
 
-const PUBLIC_ORIGIN = 'https://spillcheck.patrickob.tech';
+function PartyRow({ party, showBytes }: { party: Party; showBytes: boolean }) {
+  const facts = [
+    plural(party.requests, 'request'),
+    showBytes && party.bytes > 0 ? formatBytes(party.bytes) : null,
+    party.kinds.map((k) => KIND_LABELS[k]).join(', '),
+  ].filter(Boolean);
 
-function BadgeSection({ report }: { report: Report }) {
-  const [origin, setOrigin] = useState(PUBLIC_ORIGIN);
-  useEffect(() => setOrigin(window.location.origin), []);
-
-  const final = new URL(report.finalUrl);
-  const target = final.host + (final.pathname === '/' ? '' : final.pathname);
-  const q = encodeURIComponent(target);
-  const img = `${origin}/badge?url=${q}`;
-  const page = `${origin}/?url=${q}`;
-  const snippets = {
-    Markdown: `[![Spillcheck privacy grade](${img})](${page})`,
-    HTML: `<a href="${page}"><img src="${img}" alt="Spillcheck privacy grade"></a>`,
-  };
-
-  return (
-    <section className="group" aria-labelledby="badge-heading">
-      <header className="group-head">
-        <BadgeCheck size={20} strokeWidth={STROKE} aria-hidden />
-        <h3 id="badge-heading">Add a badge</h3>
-      </header>
-      <p className="group-why">Show this grade in a README or site footer. It links back to this report.</p>
-      <div className="badge-box">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`/badge?url=${q}`} alt={`Privacy grade ${report.grade}`} height={20} />
-        <div className="badge-actions">
-          {Object.entries(snippets).map(([name, text]) => (
-            <CopyButton key={name} label={`Copy ${name}`} text={text} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CopyButton({ label, text }: { label: string; text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      className="button plain"
-      onClick={() =>
-        navigator.clipboard.writeText(text).then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1500);
-        })
-      }
-    >
-      {copied ? <Check size={16} strokeWidth={STROKE} aria-hidden /> : <Copy size={16} strokeWidth={STROKE} aria-hidden />}
-      {copied ? 'Copied' : label}
-    </button>
-  );
-}
-
-function PartyRow({ party }: { party: Party }) {
   return (
     <li>
       <details className="row">
@@ -450,8 +480,14 @@ function PartyRow({ party }: { party: Party }) {
                 <span className="row-company"> · {party.company}</span>
               )}
             </span>
-            <span className="row-sub">{party.kinds.map((k) => KIND_LABELS[k]).join(', ')}</span>
+            <span className="row-sub">{facts.join(' · ')}</span>
           </span>
+          {party.cookies.length > 0 && (
+            <span className="row-flag">
+              <Cookie size={14} strokeWidth={STROKE} aria-hidden />
+              {plural(party.cookies.length, 'cookie')}
+            </span>
+          )}
           {party.referencedOnly && (
             <span className="row-flag">
               <CircleDashed size={14} strokeWidth={STROKE} aria-hidden />
@@ -460,7 +496,16 @@ function PartyRow({ party }: { party: Party }) {
           )}
         </summary>
         <div className="row-detail">
-          <p className="row-hosts">{party.hosts.join(', ')}</p>
+          <p className="row-hosts">
+            <Globe size={14} strokeWidth={STROKE} aria-hidden />
+            {party.hosts.join(', ')}
+          </p>
+          {party.cookies.length > 0 && (
+            <p className="row-hosts">
+              <Cookie size={14} strokeWidth={STROKE} aria-hidden />
+              {party.cookies.join(', ')}
+            </p>
+          )}
           <ul>
             {party.samples.map((s) => (
               <li key={s}>
@@ -468,11 +513,59 @@ function PartyRow({ party }: { party: Party }) {
               </li>
             ))}
             {party.requests > party.samples.length && (
-              <li className="quiet">and {party.requests - party.samples.length} more</li>
+              <li className="quiet">and {plural(party.requests - party.samples.length, 'more request')}</li>
             )}
           </ul>
         </div>
       </details>
     </li>
+  );
+}
+
+function BadgeSection({ report }: { report: Report }) {
+  const [origin, setOrigin] = useState(PUBLIC_ORIGIN);
+  useEffect(() => setOrigin(window.location.origin), []);
+
+  const final = new URL(report.finalUrl);
+  const target = final.host + (final.pathname === '/' ? '' : final.pathname);
+  const q = encodeURIComponent(target);
+  const img = `${origin}/badge?url=${q}`;
+  const page = `${origin}/?url=${q}`;
+
+  return (
+    <section className="badge-section" aria-labelledby="badge-heading">
+      <h3 id="badge-heading">
+        <BadgeCheck size={18} strokeWidth={STROKE} aria-hidden />
+        Badge
+      </h3>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`/badge?url=${q}`} alt={`Privacy grade ${report.grade}`} height={20} />
+      <div className="badge-actions">
+        <CopyButton label="Markdown" text={`[![Spillcheck privacy grade](${img})](${page})`} />
+        <CopyButton label="HTML" text={`<a href="${page}"><img src="${img}" alt="Spillcheck privacy grade"></a>`} />
+      </div>
+    </section>
+  );
+}
+
+function CopyButton({ label, text, icon = 'copy' }: { label: string; text: string; icon?: 'copy' | 'link' }) {
+  const [copied, setCopied] = useState(false);
+  const Icon = copied ? Check : icon === 'link' ? LinkIcon : Copy;
+  return (
+    <button
+      className="button plain"
+      onClick={() =>
+        navigator.clipboard.writeText(text).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        })
+      }
+    >
+      <Icon size={16} strokeWidth={STROKE} aria-hidden />
+      {copied ? 'Copied' : label}
+      <span className="visually-hidden" aria-live="polite">
+        {copied ? `${label} copied to clipboard` : ''}
+      </span>
+    </button>
   );
 }

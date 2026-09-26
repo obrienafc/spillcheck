@@ -2,7 +2,7 @@
 
 // Every UI state on one page, rendered from real scan results saved as fixtures.
 // Useful for design review; not linked from the app.
-import { ErrorView, IdleView, LoadingView, ResultView, ScanForm, Shell } from '@/components/views';
+import { ErrorView, IdleView, ResultView, ScanForm, ScanningView, Shell } from '@/components/views';
 import { ERRORS, type ClientErrorCode } from '@/components/icons';
 import type { Report } from '@/lib/scan';
 import clean from '@/lib/fixtures/clean.json';
@@ -29,7 +29,7 @@ export default function States() {
       <main className="wrap states">
         <h1>States</h1>
         <nav className="states-nav" aria-label="States">
-          {['empty', 'invalid', 'loading', 'clean', 'moderate', 'heavy', 'errors'].map((s) => (
+          {['empty', 'invalid', 'scanning', 'clean', 'tag-manager', 'heavy', 'errors'].map((s) => (
             <a key={s} href={`#${s}`}>
               {s}
             </a>
@@ -52,21 +52,23 @@ export default function States() {
           <ScanForm value="" onChange={noop} onSubmit={noop} invalid />
         </Frame>
 
-        <Frame id="loading" title="Loading" note="Skeleton mirrors the result layout.">
+        <Frame id="scanning" title="Scanning" note="Streams live stages and a running request count.">
           <ScanForm value="cnn.com" onChange={noop} onSubmit={noop} busy />
-          <LoadingView url="cnn.com" />
+          <div className="main">
+            <ScanningView url="cnn.com" stage="watch" requests={148} thirdPartyHosts={34} />
+          </div>
         </Frame>
 
         <Frame id="clean" title="Result: clean" note="No third parties (A+).">
-          <ResultView report={clean as Report} autoFocus={false} />
+          <ResultView report={clean as unknown as Report} autoFocus={false} />
         </Frame>
 
-        <Frame id="moderate" title="Result: moderate" note="Google Fonts and a tag manager.">
-          <ResultView report={moderate as Report} autoFocus={false} />
+        <Frame id="tag-manager" title="Result: loaded by a tag manager" note="html5up.net: the static scan saw 2 parties; the browser sees 5, including a Meta Pixel.">
+          <ResultView report={moderate as unknown as Report} autoFocus={false} />
         </Frame>
 
-        <Frame id="heavy" title="Result: heavy" note="34 third parties, mostly referenced.">
-          <ResultView report={heavy as Report} autoFocus={false} />
+        <Frame id="heavy" title="Result: heavy" note="cnn.com: 18 parties, 105 third-party requests, 5.9 MB.">
+          <ResultView report={heavy as unknown as Report} autoFocus={false} />
         </Frame>
 
         <Frame id="errors" title="Errors" note="One per error code.">

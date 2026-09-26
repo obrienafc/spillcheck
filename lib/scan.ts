@@ -1,14 +1,20 @@
-import { getDomain } from 'tldts';
-import { extractCss, extractHtml, type Kind, type Resource } from './extract';
+import { getCache } from '@vercel/functions';
+import { getDomain, getPublicSuffix } from 'tldts';
+import { browserAvailable, browserScan, type Progress } from './browser-scan';
 import { CATEGORIES, type Category } from './categories';
+import { extractCss, extractHtml, type Kind, type Resource } from './extract';
 import { identify, type Service } from './parties';
-import { ScanError, safeFetch } from './safe-fetch';
+import { guardedLookup } from './net-guard';
+import { ScanError, assertPublicUrl, safeFetch } from './safe-fetch';
 
 const MAX_STYLESHEETS = 12;
 const MAX_SAMPLES = 5;
+const CACHE_TTL = 6 * 60 * 60; // seconds
+const CACHE_VERSION = 'v2';
 
-// Evidence that a party *may* be contacted, rather than a resource the page loads:
-// URLs in inline scripts, preconnect hints, and form targets (only on submit).
+// Evidence that a party *may* be contacted, rather than a resource the page
+// loads: URLs in inline scripts, preconnect hints and form targets. Only the
+// static fallback produces these; the browser sees real requests.
 const REFERENCE_KINDS = new Set<Kind>(['script-reference', 'connection', 'form']);
 
 // Namespace and documentation URLs that appear in markup but are never fetched.
@@ -22,28 +28,53 @@ export type Party = {
   hosts: string[];
   kinds: Kind[];
   requests: number;
+  bytes: number;
   /** True when the only evidence is an inline-script URL, a preconnect hint or a form target. */
   referencedOnly: boolean;
   samples: string[];
+  cookies: string[];
 };
 
 export type Report = {
   url: string;
   finalUrl: string;
   scannedAt: string;
+  /** "browser" loads the page in headless Chromium; "static" reads HTML and CSS only. */
+  mode: 'browser' | 'static';
   status: number;
   score: number;
   grade: 'A+' | 'A' | 'B' | 'C' | 'D' | 'F';
-  firstPartyRequests: number;
-  cookies: string[];
+  requests: { firstParty: number; thirdParty: number };
+  thirdPartyBytes: number;
+  cookies: { firstParty: string[]; thirdParty: { name: string; domain: string; related: boolean }[] };
   parties: Party[];
   companies: string[];
   googleFonts: { families: string[] } | null;
   notes: string[];
+  /** Where the scan ran. Sites often load fewer trackers for EU visitors. */
+  region: string;
 };
+
+export type ScanProgress = Progress;
 
 function siteOf(url: URL) {
   return getDomain(url.hostname, { allowPrivateDomains: true }) ?? url.hostname;
+}
+
+/** "bbc" for bbc.co.uk: the registrable domain without its public suffix. */
+function brandOf(url: URL) {
+  const domain = siteOf(url);
+  const suffix = getPublicSuffix(url.hostname, { allowPrivateDomains: true }) ?? '';
+  return domain.slice(0, domain.length - suffix.length - 1).split('.').pop() ?? domain;
+}
+
+/**
+ * Same brand on another domain (bbc.com and bbci.co.uk for bbc.co.uk).
+ * Exact name matches, or the site's name plus at most two characters.
+ */
+function isRelated(brand: string, other: string) {
+  if (brand.length < 3) return false;
+  return other === brand || (other.startsWith(brand) && other.length - brand.length <= 2);
 }
 
 function gradeFor(score: number, parties: number): Report['grade'] {
@@ -55,7 +86,7 @@ function gradeFor(score: number, parties: number): Report['grade'] {
   return 'F';
 }
 
-function normalizeInput(input: string) {
+export function normalizeInput(input: string) {
   const trimmed = input.trim();
   if (!trimmed) throw new ScanError('Enter a URL to scan.');
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
@@ -65,12 +96,77 @@ function normalizeInput(input: string) {
   return `https://${trimmed}`;
 }
 
-export async function scan(input: string): Promise<Report> {
-  const page = await safeFetch(normalizeInput(input));
+function cacheKey(url: URL) {
+  const path = url.pathname.replace(/\/+$/, '') || '/';
+  return `${CACHE_VERSION}:${url.hostname.toLowerCase()}${path}${url.search}`;
+}
+
+/** Returns a cached report when there is one, otherwise scans and caches. */
+export async function scan(input: string, onProgress?: Progress): Promise<Report> {
+  const url = assertPublicUrl(normalizeInput(input));
+  const cache = getCache({ namespace: 'spillcheck' });
+  const key = cacheKey(url);
+
+  const cached = (await cache.get(key).catch(() => null)) as Report | null;
+  if (cached) return { ...cached, url: input };
+
+  // Resolve first: private addresses fail fast, before a browser starts.
+  await new Promise<void>((resolve, reject) =>
+    guardedLookup(url.hostname.replace(/^\[|\]$/g, ''), {}, (err) =>
+      err
+        ? reject(
+            err.message.includes('private')
+              ? new ScanError(err.message, 'private')
+              : new ScanError('Couldn’t find that site. Check the address.', 'unreachable', 502),
+          )
+        : resolve(),
+    ),
+  );
+
+  let report: Report;
+  if (browserAvailable()) {
+    try {
+      report = await scanWithBrowser(url, input, onProgress);
+    } catch (err) {
+      if (err instanceof ScanError) throw err;
+      console.error('Browser scan failed, falling back to static scan', err);
+      report = await scanStatically(url, input);
+      report.notes.unshift('The headless browser couldn’t start, so this is a static scan of the HTML and CSS only.');
+    }
+  } else {
+    report = await scanStatically(url, input);
+  }
+
+  await cache.set(key, report, { ttl: CACHE_TTL, name: url.hostname }).catch(() => {});
+  return report;
+}
+
+async function scanWithBrowser(url: URL, input: string, onProgress?: Progress) {
+  const result = await browserScan(url, onProgress);
+  if (result.status >= 400) {
+    throw new ScanError(
+      `The site responded with HTTP ${result.status}.`,
+      [401, 403, 429].includes(result.status) ? 'blocked' : 'unreachable',
+      502,
+    );
+  }
+  return buildReport({
+    input,
+    mode: 'browser',
+    finalUrl: result.finalUrl,
+    status: result.status,
+    resources: result.resources,
+    cookies: result.cookies,
+    notes: [],
+  });
+}
+
+async function scanStatically(url: URL, input: string) {
+  const page = await safeFetch(url.href);
   if (page.status >= 400) {
     throw new ScanError(
       `The site responded with HTTP ${page.status}.`,
-      page.status === 401 || page.status === 403 || page.status === 429 ? 'blocked' : 'unreachable',
+      [401, 403, 429].includes(page.status) ? 'blocked' : 'unreachable',
       502,
     );
   }
@@ -103,28 +199,51 @@ export async function scan(input: string): Promise<Report> {
   }
   if (queue.length) notes.push(`Only the first ${MAX_STYLESHEETS} stylesheets were inspected.`);
 
-  const site = siteOf(page.url);
-  const parties = new Map<string, Party>();
-  let firstPartyRequests = 0;
-  const googleFontFamilies = new Set<string>();
-
+  // Static scans see the same URL many times in markup; count each once.
   const unique = new Map<string, Resource>();
   for (const r of resources) {
     const existing = unique.get(r.url);
-    // Prefer a concrete kind over a script reference for the same URL.
     if (!existing || (REFERENCE_KINDS.has(existing.kind) && !REFERENCE_KINDS.has(r.kind))) unique.set(r.url, r);
   }
+
+  const host = page.url.hostname;
+  return buildReport({
+    input,
+    mode: 'static',
+    finalUrl: page.url,
+    status: page.status,
+    resources: [...unique.values()],
+    cookies: page.setCookies
+      .map((c) => ({ name: c.split('=')[0].trim(), domain: host }))
+      .filter((c) => c.name),
+    notes,
+  });
+}
+
+function buildReport(input: {
+  input: string;
+  mode: Report['mode'];
+  finalUrl: URL;
+  status: number;
+  resources: Resource[];
+  cookies: { name: string; domain: string }[];
+  notes: string[];
+}): Report {
+  const { finalUrl, resources, notes } = input;
+  const site = siteOf(finalUrl);
+  const brand = brandOf(finalUrl);
+  const parties = new Map<string, Party>();
+  const googleFontFamilies = new Set<string>();
+  let firstParty = 0;
+  let thirdParty = 0;
+  let thirdPartyBytes = 0;
 
   // Hosts serving the Google Fonts CSS API that aren't Google: Glyphyard
   // instances and other self-hosted font proxies.
   const fontProxyHosts = new Set<string>();
-  for (const { url: href } of unique.values()) {
+  for (const { url: href } of resources) {
     const url = new URL(href);
-    if (
-      /^\/css2?$/.test(url.pathname) &&
-      url.searchParams.has('family') &&
-      !url.hostname.endsWith('googleapis.com')
-    ) {
+    if (/^\/css2?$/.test(url.pathname) && url.searchParams.has('family') && !url.hostname.endsWith('googleapis.com')) {
       fontProxyHosts.add(url.hostname);
     }
   }
@@ -135,26 +254,17 @@ export async function scan(input: string): Promise<Report> {
     domains: [host],
   });
 
-  for (const { url: href, kind } of unique.values()) {
-    const url = new URL(href);
-    if (IGNORED_HOSTS.test(url.hostname)) continue;
-    if (siteOf(url) === site) {
-      firstPartyRequests++;
-      continue;
-    }
-
-    if (url.hostname === 'fonts.googleapis.com') {
-      for (const fam of url.searchParams.getAll('family')) {
-        for (const f of fam.split('|')) googleFontFamilies.add(f.split(':')[0].replace(/\+/g, ' '));
-      }
-    }
-
+  const partyFor = (url: URL) => {
     const service =
-      identify(url) ?? (fontProxyHosts.has(url.hostname) ? fontProxy(url.hostname) : null);
+      identify(url) ??
+      (fontProxyHosts.has(url.hostname) ? fontProxy(url.hostname) : null) ??
+      (isRelated(brand, brandOf(url))
+        ? ({ name: siteOf(url), company: null, category: 'related', domains: [siteOf(url)] } satisfies Service)
+        : null);
     const id = service ? `${service.name}:${service.domains[0]}` : siteOf(url);
-    const party =
-      parties.get(id) ??
-      ({
+    let party = parties.get(id);
+    if (!party) {
+      party = {
         id,
         name: service?.name ?? siteOf(url),
         company: service?.company ?? null,
@@ -162,16 +272,55 @@ export async function scan(input: string): Promise<Report> {
         hosts: [],
         kinds: [],
         requests: 0,
+        bytes: 0,
         referencedOnly: true,
         samples: [],
-      } satisfies Party);
+        cookies: [],
+      };
+      parties.set(id, party);
+    }
+    return party;
+  };
 
+  for (const { url: href, kind, bytes = 0 } of resources) {
+    const url = new URL(href);
+    if (IGNORED_HOSTS.test(url.hostname)) continue;
+    if (siteOf(url) === site) {
+      firstParty++;
+      continue;
+    }
+    thirdParty++;
+    thirdPartyBytes += bytes;
+
+    if (url.hostname === 'fonts.googleapis.com') {
+      for (const fam of url.searchParams.getAll('family')) {
+        for (const f of fam.split('|')) googleFontFamilies.add(f.split(':')[0].replace(/\+/g, ' '));
+      }
+    }
+
+    const party = partyFor(url);
     if (!party.hosts.includes(url.hostname)) party.hosts.push(url.hostname);
     if (!party.kinds.includes(kind)) party.kinds.push(kind);
     party.requests++;
+    party.bytes += bytes;
     if (!REFERENCE_KINDS.has(kind)) party.referencedOnly = false;
-    if (party.samples.length < MAX_SAMPLES) party.samples.push(href);
-    parties.set(id, party);
+    if (party.samples.length < MAX_SAMPLES && !party.samples.includes(href)) party.samples.push(href);
+  }
+
+  // Cookies: third-party cookies are attributed to the party that set them.
+  const firstPartyCookies: string[] = [];
+  const thirdPartyCookies: { name: string; domain: string; related: boolean }[] = [];
+  for (const c of input.cookies) {
+    const url = new URL(`https://${c.domain}/`);
+    if (siteOf(url) === site) {
+      firstPartyCookies.push(c.name);
+    } else {
+      const party = partyFor(url);
+      thirdPartyCookies.push({ ...c, related: party.category === 'related' });
+      if (!party.hosts.includes(url.hostname)) party.hosts.push(url.hostname);
+      party.cookies.push(c.name);
+      party.referencedOnly = false;
+    }
   }
 
   const list = [...parties.values()].sort(
@@ -181,33 +330,32 @@ export async function scan(input: string): Promise<Report> {
       b.requests - a.requests,
   );
 
-  // Referenced-only parties (e.g. a URL in an inline script) count half.
-  const penalty = list.reduce(
-    (sum, p) => sum + CATEGORIES[p.category].weight * (p.referencedOnly ? 0.5 : 1),
-    0,
-  );
+  // Referenced-only parties count half. Third-party cookies add a small
+  // penalty each (capped), since they're how visitors are followed across sites.
+  const penalty =
+    list.reduce((sum, p) => sum + CATEGORIES[p.category].weight * (p.referencedOnly ? 0.5 : 1), 0) +
+    Math.min(20, thirdPartyCookies.filter((c) => !c.related).length * 2);
   const score = Math.max(0, Math.round(100 - penalty));
 
-  if (list.some((p) => p.category === 'tag-manager')) {
+  if (input.mode === 'static' && list.some((p) => p.category === 'tag-manager')) {
     notes.push('A tag manager is present, so more scripts are probably loaded at runtime.');
   }
 
-  const cookies = page.setCookies.map((c) => c.split('=')[0].trim()).filter(Boolean);
-
   return {
-    url: input,
-    finalUrl: page.url.href,
+    url: input.input,
+    finalUrl: finalUrl.href,
     scannedAt: new Date().toISOString(),
-    status: page.status,
+    mode: input.mode,
+    status: input.status,
     score,
     grade: gradeFor(score, list.length),
-    firstPartyRequests,
-    cookies,
+    requests: { firstParty, thirdParty },
+    thirdPartyBytes,
+    cookies: { firstParty: firstPartyCookies, thirdParty: thirdPartyCookies },
     parties: list,
     companies: [...new Set(list.map((p) => p.company).filter((c): c is string => !!c))].sort(),
-    googleFonts: list.some((p) => p.name === 'Google Fonts')
-      ? { families: [...googleFontFamilies].sort() }
-      : null,
+    googleFonts: list.some((p) => p.name === 'Google Fonts') ? { families: [...googleFontFamilies].sort() } : null,
     notes,
+    region: process.env.VERCEL_REGION ?? 'local',
   };
 }

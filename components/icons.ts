@@ -12,6 +12,7 @@ import {
   CreditCard,
   FileCode,
   Globe,
+  Link2,
   Lock,
   type LucideIcon,
   Megaphone,
@@ -49,6 +50,7 @@ export const CATEGORY_ICONS: Record<Category, LucideIcon> = {
   payments: CreditCard,
   cdn: Globe,
   hosting: Server,
+  related: Link2,
   unknown: CircleHelp,
 };
 

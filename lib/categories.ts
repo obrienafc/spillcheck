@@ -18,6 +18,7 @@ export type Category =
   | 'cdn'
   | 'hosting'
   | 'risk'
+  | 'related'
   | 'unknown';
 
 export const CATEGORIES: Record<Category, { label: string; weight: number; why: string }> = {
@@ -100,6 +101,11 @@ export const CATEGORIES: Record<Category, { label: string; weight: number; why: 
     label: 'Privacy-friendly fonts',
     weight: 2,
     why: 'Fonts served by a privacy-preserving proxy or CDN, so visitors never contact Google.',
+  },
+  related: {
+    label: 'Related domains',
+    weight: 1,
+    why: 'Shares this site’s name, so it’s probably the same organisation. Browsers still treat it as a separate site.',
   },
   payments: {
     label: 'Payments',

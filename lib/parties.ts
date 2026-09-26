@@ -58,6 +58,8 @@ const SERVICES: Service[] = [
   { name: 'ID5', company: 'ID5', category: 'advertising', domains: ['id5-sync.com'] },
   { name: 'Oracle BlueKai', company: 'Oracle', category: 'advertising', domains: ['bluekai.com', 'bkrtx.com'] },
   { name: 'Permutive', company: 'Permutive', category: 'advertising', domains: ['permutive.com', 'permutive.app'] },
+  { name: 'Bombora', company: 'Bombora', category: 'advertising', domains: ['ml314.com'] },
+  { name: 'BrightLine', company: 'BrightLine', category: 'advertising', domains: ['brightline.tv'] },
   { name: 'Carbon Ads', company: 'BuySellAds', category: 'advertising', domains: ['carbonads.com', 'carbonads.net', 'buysellads.com', 'srv.buysellads.com'] },
   { name: 'HubSpot', company: 'HubSpot', category: 'advertising', domains: ['hs-scripts.com', 'hs-analytics.net', 'hs-banner.com', 'hsforms.net', 'hsforms.com', 'hubspot.com', 'hscollectedforms.net', 'hsadspixel.net', 'usemessages.com'] },
 
@@ -86,8 +88,11 @@ const SERVICES: Service[] = [
   { name: 'Optimizely', company: 'Optimizely', category: 'analytics', domains: ['optimizely.com'] },
   { name: 'VWO', company: 'Wingify', category: 'analytics', domains: ['visualwebsiteoptimizer.com', 'wingify.com'] },
   { name: 'Klaviyo', company: 'Klaviyo', category: 'analytics', domains: ['klaviyo.com'] },
+  { name: 'Dotmetrics', company: 'Ipsos', category: 'analytics', domains: ['dotmetrics.net'] },
   { name: 'Nielsen', company: 'Nielsen', category: 'analytics', domains: ['imrworldwide.com', 'exelator.com'] },
-  { name: 'Piano', company: 'Piano', category: 'analytics', domains: ['piano.io', 'tinypass.com'] },
+  { name: 'Piano', company: 'Piano', category: 'analytics', domains: ['piano.io', 'tinypass.com', 'cxense.com'] },
+  { name: 'Mux Data', company: 'Mux', category: 'analytics', domains: ['litix.io'] },
+  { name: 'MediaMelon', company: 'MediaMelon', category: 'analytics', domains: ['mediamelon.com'] },
   { name: 'Salesforce Audience Studio', company: 'Salesforce', category: 'analytics', domains: ['krxd.net'] },
   { name: 'Mailchimp', company: 'Intuit', category: 'analytics', domains: ['list-manage.com', 'chimpstatic.com', 'mailchimp.com'] },
 
@@ -152,11 +157,12 @@ const SERVICES: Service[] = [
   { name: 'Tidio', company: 'Tidio', category: 'support', domains: ['tidio.co', 'tidiochat.com'] },
 
   // Consent
-  { name: 'OneTrust', company: 'OneTrust', category: 'consent', domains: ['cookielaw.org', 'onetrust.com'] },
+  { name: 'OneTrust', company: 'OneTrust', category: 'consent', domains: ['cookielaw.org', 'onetrust.com', 'onetrust.io'] },
   { name: 'Cookiebot', company: 'Usercentrics', category: 'consent', domains: ['cookiebot.com', 'cookiebot.eu'] },
   { name: 'Usercentrics', company: 'Usercentrics', category: 'consent', domains: ['usercentrics.eu'] },
   { name: 'Termly', company: 'Termly', category: 'consent', domains: ['termly.io'] },
   { name: 'iubenda', company: 'iubenda', category: 'consent', domains: ['iubenda.com'] },
+  { name: 'Sourcepoint', company: 'Sourcepoint', category: 'consent', domains: ['privacy-mgmt.com', 'sourcepoint.com'] },
   { name: 'IAB consent framework', company: 'IAB Europe', category: 'consent', domains: ['consensu.org'] },
 
   // Bot protection

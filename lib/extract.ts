@@ -10,9 +10,12 @@ export type Kind =
   | 'connection'
   | 'form'
   | 'script-reference'
+  | 'fetch'
+  | 'beacon'
+  | 'websocket'
   | 'other';
 
-export type Resource = { url: string; kind: Kind };
+export type Resource = { url: string; kind: Kind; bytes?: number };
 
 const URL_IN_TEXT = /(?:https?:)?\/\/[a-z0-9.-]+\.[a-z]{2,}(?::\d+)?(?:\/[^\s"'`<>()\\]*)?/gi;
 const CSS_URL = /url\(\s*(['"]?)([^'")]+)\1\s*\)/gi;

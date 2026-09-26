@@ -1,238 +1,218 @@
 {
  "url": "cnn.com",
  "finalUrl": "https://edition.cnn.com/",
- "scannedAt": "2026-09-26T17:18:33.080Z",
+ "scannedAt": "2026-09-26T20:31:27.752Z",
+ "mode": "browser",
  "status": 200,
  "score": 0,
  "grade": "F",
- "firstPartyRequests": 487,
- "cookies": [
-  "SecGpc",
-  "countryCode",
-  "stateCode",
-  "geoData",
-  "wbdFch",
-  "FastAB"
- ],
+ "requests": {
+  "firstParty": 103,
+  "thirdParty": 65
+ },
+ "thirdPartyBytes": 5032580,
+ "cookies": {
+  "firstParty": [
+   "countryCode",
+   "stateCode",
+   "FastAB",
+   "SecGpc",
+   "wbdFch",
+   "usprivacy",
+   "_pctx",
+   "_pcid",
+   "OptanonControl",
+   "OptanonConsent",
+   "__tbc",
+   "__pat",
+   "__pvi",
+   "xbc",
+   "_pcus",
+   "_OT_sm",
+   "g_state",
+   "cX_P",
+   "geoData",
+   "st",
+   "gi_ls",
+   "cX_G",
+   "__stripe_mid",
+   "__stripe_sid"
+  ],
+  "thirdParty": [
+   {
+    "name": "__cf_bm",
+    "domain": "piano.io",
+    "related": false
+   },
+   {
+    "name": "__cf_bm",
+    "domain": "tinypass.com",
+    "related": false
+   },
+   {
+    "name": "gckp",
+    "domain": "cxense.com",
+    "related": false
+   },
+   {
+    "name": "m",
+    "domain": "m.stripe.com",
+    "related": false
+   }
+  ]
+ },
  "parties": [
   {
-   "id": "Google Ads & DoubleClick",
+   "id": "Google Ads & DoubleClick:doubleclick.net",
    "name": "Google Ads & DoubleClick",
    "company": "Google",
    "category": "advertising",
    "hosts": [
-    "tpc.googlesyndication.com",
+    "securepubads.g.doubleclick.net",
+    "pubads.g.doubleclick.net",
     "pagead2.googlesyndication.com",
-    "www.googletagservices.com",
-    "securepubads.g.doubleclick.net"
+    "tpc.googlesyndication.com"
    ],
    "kinds": [
-    "connection",
-    "script-reference"
+    "script",
+    "other",
+    "fetch",
+    "frame",
+    "image"
+   ],
+   "requests": 12,
+   "bytes": 339562,
+   "referencedOnly": false,
+   "samples": [
+    "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+    "https://securepubads.g.doubleclick.net/pagead/managed/js/gpt/m202609210101/pubads_impl.js?cb=122881199",
+    "https://securepubads.g.doubleclick.net/pagead/managed/dict/m202609240101/gpt"
+   ],
+   "cookies": []
+  },
+  {
+   "id": "BrightLine:brightline.tv",
+   "name": "BrightLine",
+   "company": "BrightLine",
+   "category": "advertising",
+   "hosts": [
+    "cdn-media.brightline.tv",
+    "events.brightline.tv"
+   ],
+   "kinds": [
+    "other",
+    "fetch"
+   ],
+   "requests": 6,
+   "bytes": 564,
+   "referencedOnly": false,
+   "samples": [
+    "https://cdn-media.brightline.tv/config/v3/1018.json",
+    "https://events.brightline.tv/track"
+   ],
+   "cookies": []
+  },
+  {
+   "id": "Quantcast:quantserve.com",
+   "name": "Quantcast",
+   "company": "Quantcast",
+   "category": "advertising",
+   "hosts": [
+    "secure.quantserve.com",
+    "rules.quantcount.com"
+   ],
+   "kinds": [
+    "script"
+   ],
+   "requests": 2,
+   "bytes": 17295,
+   "referencedOnly": false,
+   "samples": [
+    "https://secure.quantserve.com/quant.js",
+    "https://rules.quantcount.com/rules-p-D1yc5zQgjmqr5.js"
+   ],
+   "cookies": []
+  },
+  {
+   "id": "Piano:piano.io",
+   "name": "Piano",
+   "company": "Piano",
+   "category": "analytics",
+   "hosts": [
+    "experience.piano.io",
+    "cdn.tinypass.com",
+    "cdn.cxense.com",
+    "c2.piano.io",
+    "id.cxense.com",
+    "comcluster.cxense.com",
+    "buy.tinypass.com",
+    "piano.io",
+    "tinypass.com",
+    "cxense.com"
+   ],
+   "kinds": [
+    "script",
+    "fetch",
+    "image"
+   ],
+   "requests": 8,
+   "bytes": 192330,
+   "referencedOnly": false,
+   "samples": [
+    "https://experience.piano.io/xbuilder/experience/load?aid=RCoM2QBLpu",
+    "https://cdn.tinypass.com/api/tinypass.min.js",
+    "https://cdn.cxense.com/cx.cce.js"
+   ],
+   "cookies": [
+    "__cf_bm",
+    "__cf_bm",
+    "gckp"
+   ]
+  },
+  {
+   "id": "MediaMelon:mediamelon.com",
+   "name": "MediaMelon",
+   "company": "MediaMelon",
+   "category": "analytics",
+   "hosts": [
+    "register.mediamelon.com",
+    "beacons-wbd.mediamelon.com"
+   ],
+   "kinds": [
+    "fetch",
+    "other"
    ],
    "requests": 5,
-   "referencedOnly": true,
+   "bytes": 598,
+   "referencedOnly": false,
    "samples": [
-    "https://tpc.googlesyndication.com/",
-    "https://pagead2.googlesyndication.com/",
-    "https://www.googletagservices.com/"
-   ]
+    "https://register.mediamelon.com/mm-apis/register/1910217647?hintFileVersion=2.0.0&EP_SCHEMA_VERSION=2.0.0&platform=Browser&qmetric=true&statistics=false&log_level=2&component=CUSTOMJSSDK&mode=QBRDisabled",
+    "https://beacons-wbd.mediamelon.com/MultiStreamProducer"
+   ],
+   "cookies": []
   },
   {
-   "id": "Xandr",
-   "name": "Xandr",
-   "company": "Microsoft",
-   "category": "advertising",
+   "id": "Comscore:scorecardresearch.com",
+   "name": "Comscore",
+   "company": "Comscore",
+   "category": "analytics",
    "hosts": [
-    "ib.adnxs.com"
+    "sb.scorecardresearch.com"
    ],
    "kinds": [
-    "connection",
-    "script-reference"
+    "script"
    ],
    "requests": 2,
-   "referencedOnly": true,
+   "bytes": 14202,
+   "referencedOnly": false,
    "samples": [
-    "https://ib.adnxs.com/",
-    "https://ib.adnxs.com/getuid?https://umto.{{domain}}/user-sync?zwmc=$UID&domain={{domain}}"
-   ]
+    "https://sb.scorecardresearch.com/cs/6035748/beacon.js",
+    "https://sb.scorecardresearch.com/internal-cs/default/beacon.js"
+   ],
+   "cookies": []
   },
   {
-   "id": "Integral Ad Science",
-   "name": "Integral Ad Science",
-   "company": "Integral Ad Science",
-   "category": "advertising",
-   "hosts": [
-    "cdn.adsafeprotected.com",
-    "static.adsafeprotected.com"
-   ],
-   "kinds": [
-    "connection"
-   ],
-   "requests": 2,
-   "referencedOnly": true,
-   "samples": [
-    "https://cdn.adsafeprotected.com/",
-    "https://static.adsafeprotected.com/"
-   ]
-  },
-  {
-   "id": "Magnite (SpotX, Tremor)",
-   "name": "Magnite (SpotX, Tremor)",
-   "company": "Magnite",
-   "category": "advertising",
-   "hosts": [
-    "sync.search.spotxchange.com",
-    "eq97f.publishers.tremorhub.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 2,
-   "referencedOnly": true,
-   "samples": [
-    "https://sync.search.spotxchange.com/audience_id",
-    "https://eq97f.publishers.tremorhub.com/pubsync?redir=https://umto.{{domain}}/user-sync?goiz=%5Btvid%5D&domain={{domain}}"
-   ]
-  },
-  {
-   "id": "Index Exchange",
-   "name": "Index Exchange",
-   "company": "Index Exchange",
-   "category": "advertising",
-   "hosts": [
-    "js-sec.indexww.com"
-   ],
-   "kinds": [
-    "connection"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://js-sec.indexww.com/"
-   ]
-  },
-  {
-   "id": "Nativo",
-   "name": "Nativo",
-   "company": "Nativo",
-   "category": "advertising",
-   "hosts": [
-    "s.ntv.io"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://s.ntv.io/serve/load.js"
-   ]
-  },
-  {
-   "id": "Dianomi",
-   "name": "Dianomi",
-   "company": "Dianomi",
-   "category": "advertising",
-   "hosts": [
-    "www.dianomi.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://www.dianomi.com/js/contextfeedCNN.js"
-   ]
-  },
-  {
-   "id": "FreeWheel",
-   "name": "FreeWheel",
-   "company": "Comcast",
-   "category": "advertising",
-   "hosts": [
-    "bea4.v.fwmrm.net"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://bea4.v.fwmrm.net/ad/u?mode=echo&cr=https://umto.{{domain}}/user-sync?bea4=#{user.id}&domain={{domain}}"
-   ]
-  },
-  {
-   "id": "LiveRamp",
-   "name": "LiveRamp",
-   "company": "LiveRamp",
-   "category": "advertising",
-   "hosts": [
-    "idsync.rlcdn.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://idsync.rlcdn.com/712348.gif?partner_uid=${fwuid}"
-   ]
-  },
-  {
-   "id": "PubMatic",
-   "name": "PubMatic",
-   "company": "PubMatic",
-   "category": "advertising",
-   "hosts": [
-    "ads.pubmatic.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://ads.pubmatic.com/AdServer/js/userSync.js"
-   ]
-  },
-  {
-   "id": "Magnite",
-   "name": "Magnite",
-   "company": "Magnite",
-   "category": "advertising",
-   "hosts": [
-    "pixel-us-east.rubiconproject.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://pixel-us-east.rubiconproject.com/exchange/sync.php?p={{brand}}"
-   ]
-  },
-  {
-   "id": "Amazon Ads",
-   "name": "Amazon Ads",
-   "company": "Amazon",
-   "category": "advertising",
-   "hosts": [
-    "c.aps.amazon-adsystem.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://c.aps.amazon-adsystem.com/"
-   ]
-  },
-  {
-   "id": "Optimizely",
+   "id": "Optimizely:optimizely.com",
    "name": "Optimizely",
    "company": "Optimizely",
    "category": "analytics",
@@ -240,361 +220,140 @@
     "cdn.optimizely.com"
    ],
    "kinds": [
-    "script-reference",
-    "connection",
     "script"
    ],
-   "requests": 3,
+   "requests": 1,
+   "bytes": 120993,
    "referencedOnly": false,
    "samples": [
-    "https://cdn.optimizely.com/public/125375509/s/",
-    "https://cdn.optimizely.com/",
     "https://cdn.optimizely.com/public/125375509/s/landingprod.js"
-   ]
+   ],
+   "cookies": []
   },
   {
-   "id": "Piano",
-   "name": "Piano",
-   "company": "Piano",
-   "category": "analytics",
+   "id": "Google Fonts:fonts.googleapis.com",
+   "name": "Google Fonts",
+   "company": "Google",
+   "category": "fonts",
    "hosts": [
-    "experience.piano.io",
-    "id.piano.io",
-    "buy.tinypass.com",
-    "experience.tinypass.com",
-    "cdn.tinypass.com"
+    "fonts.googleapis.com"
    ],
    "kinds": [
-    "script-reference"
-   ],
-   "requests": 5,
-   "referencedOnly": true,
-   "samples": [
-    "https://experience.piano.io/xbuilder/experience/load?aid=",
-    "https://id.piano.io/",
-    "https://buy.tinypass.com/"
-   ]
-  },
-  {
-   "id": "Chartbeat",
-   "name": "Chartbeat",
-   "company": "Chartbeat",
-   "category": "analytics",
-   "hosts": [
-    "static.chartbeat.com"
-   ],
-   "kinds": [
-    "script-reference"
+    "stylesheet"
    ],
    "requests": 1,
-   "referencedOnly": true,
+   "bytes": 2087,
+   "referencedOnly": false,
    "samples": [
-    "https://static.chartbeat.com/js/chartbeat_mab.js"
-   ]
+    "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+   ],
+   "cookies": []
   },
   {
-   "id": "OpenWeb comments",
-   "name": "OpenWeb comments",
-   "company": "OpenWeb",
-   "category": "social",
-   "hosts": [
-    "launcher.spot.im"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 2,
-   "referencedOnly": true,
-   "samples": [
-    "https://launcher.spot.im/spot/sp_hsRkxHeO",
-    "https://launcher.spot.im/spot/sp_4hCVuB3p"
-   ]
-  },
-  {
-   "id": "cnn.io",
-   "name": "cnn.io",
-   "company": null,
-   "category": "unknown",
-   "hosts": [
-    "production.dataviz.cnn.io",
-    "prod.di.api.cnn.io",
-    "ml-recs-edge.api.cnn.io",
-    "fave.api.cnn.io",
-    "api.business.cnn.io",
-    "ix.cnn.io",
-    "search.prod.di.api.cnn.io",
-    "registry.api.cnn.io",
-    "zion-telemetry.api.cnn.io",
-    "politics.api.cnn.io",
-    "politics-static.cnn.io",
-    "atlas.cnn.io",
-    "data.api.cnn.io",
-    "api.prod.weather.cnn.io"
-   ],
-   "kinds": [
-    "script-reference",
-    "connection"
-   ],
-   "requests": 22,
-   "referencedOnly": true,
-   "samples": [
-    "https://production.dataviz.cnn.io/",
-    "https://prod.di.api.cnn.io/",
-    "https://prod.di.api.cnn.io/recommendations"
-   ]
-  },
-  {
-   "id": "Arkose Labs",
-   "name": "Arkose Labs",
-   "company": "Arkose Labs",
-   "category": "security",
-   "hosts": [
-    "wbd-api.arkoselabs.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 4,
-   "referencedOnly": true,
-   "samples": [
-    "https://wbd-api.arkoselabs.com/v2/72361606-06A8-445C-A3D0-9FB07DB14610/api.js",
-    "https://wbd-api.arkoselabs.com/v2/A81F9530-112A-47B2-BA4B-8CB41D7C6DD6/api.js",
-    "https://wbd-api.arkoselabs.com/v2/12FB7448-F055-4621-BC01-1DDF7CB3945A/api.js"
-   ]
-  },
-  {
-   "id": "turner.com",
-   "name": "turner.com",
-   "company": null,
-   "category": "unknown",
-   "hosts": [
-    "turnip.cdn.turner.com",
-    "tvem.cdn.turner.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 3,
-   "referencedOnly": true,
-   "samples": [
-    "https://turnip.cdn.turner.com/top/auth/2.22.3-0/auth.min.js",
-    "https://tvem.cdn.turner.com/v2/getConfig?brand=CNN&platform=web&country=US",
-    "https://turnip.cdn.turner.com/top/freeview/2.19.0-3/freeview.min.js"
-   ]
-  },
-  {
-   "id": "wknd.ai",
-   "name": "wknd.ai",
-   "company": null,
-   "category": "unknown",
-   "hosts": [
-    "tag.wknd.ai"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 3,
-   "referencedOnly": true,
-   "samples": [
-    "https://tag.wknd.ai/340/i.js",
-    "https://tag.wknd.ai/7342/i.js",
-    "https://tag.wknd.ai/7291/i.js"
-   ]
-  },
-  {
-   "id": "wbdprivacy.com",
-   "name": "wbdprivacy.com",
-   "company": null,
-   "category": "unknown",
-   "hosts": [
-    "www.wbdprivacy.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 3,
-   "referencedOnly": true,
-   "samples": [
-    "https://www.wbdprivacy.com/policycenter/b2c/",
-    "https://www.wbdprivacy.com/policycenter/affiliates/",
-    "https://www.wbdprivacy.com/policycenter/usstatesupplement/en-us/"
-   ]
-  },
-  {
-   "id": "Google",
+   "id": "Google:google.com",
    "name": "Google",
    "company": "Google",
    "category": "unknown",
    "hosts": [
-    "www.google.com",
+    "imasdk.googleapis.com",
     "accounts.google.com"
    ],
    "kinds": [
-    "connection",
-    "script-reference"
+    "script",
+    "stylesheet"
+   ],
+   "requests": 3,
+   "bytes": 263132,
+   "referencedOnly": false,
+   "samples": [
+    "https://imasdk.googleapis.com/js/sdkloader/ima3.js",
+    "https://accounts.google.com/gsi/client",
+    "https://accounts.google.com/gsi/style"
+   ],
+   "cookies": []
+  },
+  {
+   "id": "ml314.com",
+   "name": "ml314.com",
+   "company": null,
+   "category": "unknown",
+   "hosts": [
+    "cdn.ml314.com",
+    "vi.ml314.com"
+   ],
+   "kinds": [
+    "script"
    ],
    "requests": 2,
-   "referencedOnly": true,
+   "bytes": 9011,
+   "referencedOnly": false,
    "samples": [
-    "https://www.google.com/",
-    "https://accounts.google.com/gsi/client"
-   ]
+    "https://cdn.ml314.com/taglw.js",
+    "https://vi.ml314.com/get?eid=64240&tk=GBYTTE9dUG2OqHj1Rk9DPOaLspvMWfLqV236sdkHgf03d&fp="
+   ],
+   "cookies": []
   },
   {
-   "id": "zqtk.net",
-   "name": "zqtk.net",
+   "id": "onetrust.io",
+   "name": "onetrust.io",
    "company": null,
    "category": "unknown",
    "hosts": [
-    "segment-data-us-east.zqtk.net"
+    "cookies-data.onetrust.io"
    ],
    "kinds": [
-    "connection"
+    "fetch",
+    "other"
    ],
-   "requests": 1,
-   "referencedOnly": true,
+   "requests": 2,
+   "bytes": 0,
+   "referencedOnly": false,
    "samples": [
-    "https://segment-data-us-east.zqtk.net/"
-   ]
+    "https://cookies-data.onetrust.io/cfw/cmp/v1/session"
+   ],
+   "cookies": []
   },
   {
-   "id": "loginwithamazon.com",
-   "name": "loginwithamazon.com",
+   "id": "litix.io",
+   "name": "litix.io",
    "company": null,
    "category": "unknown",
    "hosts": [
-    "assets.loginwithamazon.com"
+    "out053a3bejgh7t0phqa0csou.litix.io"
    ],
    "kinds": [
-    "script-reference"
+    "fetch"
    ],
-   "requests": 1,
-   "referencedOnly": true,
+   "requests": 2,
+   "bytes": 0,
+   "referencedOnly": false,
    "samples": [
-    "https://assets.loginwithamazon.com/sdk/na/login1.js"
-   ]
+    "https://out053a3bejgh7t0phqa0csou.litix.io/"
+   ],
+   "cookies": []
   },
   {
-   "id": "script.ac",
-   "name": "script.ac",
+   "id": "max.com",
+   "name": "max.com",
    "company": null,
    "category": "unknown",
    "hosts": [
-    "cadmus.script.ac"
+    "akm.live.cnn.eu.prd.media.max.com"
    ],
    "kinds": [
-    "script-reference"
+    "fetch"
    ],
-   "requests": 1,
-   "referencedOnly": true,
+   "requests": 2,
+   "bytes": 10364,
+   "referencedOnly": false,
    "samples": [
-    "https://cadmus.script.ac/d2uap9jskdzp2/script.js"
-   ]
+    "https://akm.live.cnn.eu.prd.media.max.com/live/use1/d17_CixjNDllYjI0My1lM2I2LTU3ODUtOGI0Yi0xNGQwNDE2YzgzNGEtdXMtZWFzdBINYm9sdC1nbG8tcHJvZBoTEhFwYWNrYWdlci1tcDQtY2VuYw/token=Expires=1790541084&KeyName=95d1d182-dfcc-44e8-b843-3b8354ff05cc&Info=eyJ1c2VySWQiOiI4OTYzNzE2MC1jNGI2LTQ3YWEtYjJmNy1lMTFiZTM5YjViNzUiLCAiZGV2aWNlIjoiODk2MzcxNjAtYzRiNi00N2FhLWIyZjctZTExYmUzOWI1Yjc1IiwgInNlc3Npb25JZCI6ImVhOTNjOWIyLTg4ODAtNDgxYy04NTAzLTk5YmRkZDNiN2U4YyIsICJlZGl0SWQiOiJjNDllYjI0My1lM2I2LTU3ODUtOGI0Yi0xNGQwNDE2YzgzNGEiLCAiZ2VvIjoiSUUiLCAidGltZXN0YW1wIjoiMjAyNi0wOS0yNlQyMDozMToyNFoiLCAidGVuYW50IjoiY25uIn0=&Signature=d326f134987aca0b368b7a5ecb1b9f4b1d52413f9a85d7cdd681faad52174273/main.mpd?rtype=s&reg=eu-west-1&pid=ea93c9b2-8880-481c-8503-99bddd3b7e8c&ctx=KLUv_WMa3e0K0gBlCACjkDM5JCIfYJAIUAmMCBWmxoNEqLw2ilCBsI2YDBIBVogwBJYSNmhQUAA14OIMIR9wvMIUbnzARcYGVKON1uMDROjhKu0IQXhDDSB84AOPG0V4440gdEADPLTCHxiCg0Fwa6yhRhFkwAOlBcTDUvfzvh93LT0xPfSoQvbwQvBRrbFG7tS2vt5s3TyTr5SqIZioucFv53BAOa4FGYoxxWzuz427-fDjauZiU-7lSyXk5_neWkjfOZO0WmqPYNuFuSK3VK1dqtqF1LuDADbYcAEoQBH8s_pTl4pfLxSLhI5U86uGuC82LjhmLzml4ZehuN0duReHN5ASpcNr4IKlq-FPVrddq5Y9Hs0lQhkU&ps=&ismaster=",
+    "https://akm.live.cnn.eu.prd.media.max.com/live/use1/d17_CixjNDllYjI0My1lM2I2LTU3ODUtOGI0Yi0xNGQwNDE2YzgzNGEtdXMtZWFzdBINYm9sdC1nbG8tcHJvZBoTEhFwYWNrYWdlci1tcDQtY2VuYw/token=Expires=1790541084&KeyName=95d1d182-dfcc-44e8-b843-3b8354ff05cc&Info=eyJ1c2VySWQiOiI4OTYzNzE2MC1jNGI2LTQ3YWEtYjJmNy1lMTFiZTM5YjViNzUiLCAiZGV2aWNlIjoiODk2MzcxNjAtYzRiNi00N2FhLWIyZjctZTExYmUzOWI1Yjc1IiwgInNlc3Npb25JZCI6ImVhOTNjOWIyLTg4ODAtNDgxYy04NTAzLTk5YmRkZDNiN2U4YyIsICJlZGl0SWQiOiJjNDllYjI0My1lM2I2LTU3ODUtOGI0Yi0xNGQwNDE2YzgzNGEiLCAiZ2VvIjoiSUUiLCAidGltZXN0YW1wIjoiMjAyNi0wOS0yNlQyMDozMToyNFoiLCAidGVuYW50IjoiY25uIn0=&Signature=d326f134987aca0b368b7a5ecb1b9f4b1d52413f9a85d7cdd681faad52174273/fallback.mpd?manifest-params=prod-20260926%7Cu_bWY81L3UDcPPDzCskzcPkpds-AOjEqt5p8l9bZE0w%3D%7CYWRtby50eXBlPXJ1bmRtYyZkdXJhdGlvbj0zMDAmci5tYW5pZmVzdD1saXZlJTJGdXNlMSUyRmQxN19DaXhqTkRsbFlqSTBNeTFsTTJJMkxUVTNPRFV0T0dJMFlpMHhOR1F3TkRFMll6Z3pOR0V0ZFhNdFpXRnpkQklOWW05c2RDMW5iRzh0Y0hKdlpCb1RFaEZ3WVdOcllXZGxjaTF0Y0RRdFkyVnVZdyUyRmZhbGxiYWNrLm1wZA%3D%3D&rtype=admo"
+   ],
+   "cookies": []
   },
   {
-   "id": "eurosport.com",
-   "name": "eurosport.com",
-   "company": null,
-   "category": "unknown",
-   "hosts": [
-    "inflow.eurosport.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://inflow.eurosport.com/lem/asset/bolt"
-   ]
-  },
-  {
-   "id": "cdn-apple.com",
-   "name": "cdn-apple.com",
-   "company": null,
-   "category": "unknown",
-   "hosts": [
-    "appleid.cdn-apple.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"
-   ]
-  },
-  {
-   "id": "ngtv.io",
-   "name": "ngtv.io",
-   "company": null,
-   "category": "unknown",
-   "hosts": [
-    "ite.api.tvemanager.ngtv.io"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://ite.api.tvemanager.ngtv.io/v2/getConfig?brand=cnnplusee&platform=web"
-   ]
-  },
-  {
-   "id": "turnerapps.com",
-   "name": "turnerapps.com",
-   "company": null,
-   "category": "unknown",
-   "hosts": [
-    "wopr.turnerapps.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://wopr.turnerapps.com/"
-   ]
-  },
-  {
-   "id": "publicgood.com",
-   "name": "publicgood.com",
-   "company": null,
-   "category": "unknown",
-   "hosts": [
-    "assets.publicgood.com"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://assets.publicgood.com/pgm/v1/dpg.js"
-   ]
-  },
-  {
-   "id": "pledge.to",
-   "name": "pledge.to",
-   "company": null,
-   "category": "unknown",
-   "hosts": [
-    "www.pledge.to"
-   ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://www.pledge.to/assets/widget.js"
-   ]
-  },
-  {
-   "id": "OneTrust",
+   "id": "OneTrust:cookielaw.org",
    "name": "OneTrust",
    "company": "OneTrust",
    "category": "consent",
@@ -602,68 +361,103 @@
     "cdn.cookielaw.org"
    ],
    "kinds": [
-    "script-reference"
+    "fetch"
    ],
    "requests": 1,
-   "referencedOnly": true,
+   "bytes": 91776,
+   "referencedOnly": false,
    "samples": [
-    "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"
+    "https://cdn.cookielaw.org/vendorlist/iab2V2Data.json"
+   ],
+   "cookies": []
+  },
+  {
+   "id": "Google static content:gstatic.com",
+   "name": "Google static content",
+   "company": "Google",
+   "category": "cdn",
+   "hosts": [
+    "www.gstatic.com"
+   ],
+   "kinds": [
+    "fetch"
+   ],
+   "requests": 1,
+   "bytes": 0,
+   "referencedOnly": false,
+   "samples": [
+    "https://www.gstatic.com/generate_204"
+   ],
+   "cookies": []
+  },
+  {
+   "id": "Stripe:stripe.com",
+   "name": "Stripe",
+   "company": "Stripe",
+   "category": "payments",
+   "hosts": [
+    "js.stripe.com",
+    "m.stripe.network",
+    "m.stripe.com"
+   ],
+   "kinds": [
+    "script",
+    "frame",
+    "fetch"
+   ],
+   "requests": 6,
+   "bytes": 273187,
+   "referencedOnly": false,
+   "samples": [
+    "https://js.stripe.com/dahlia/stripe.js",
+    "https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Fedition.cnn.com%2F&title=Breaking%20News%2C%20Latest%20News%20and%20Videos%20%7C%20CNN&referrer=&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=dahlia",
+    "https://js.stripe.com/v3/fingerprinted/js/m-outer-15a2b40a058ddff1cffdb63779fe3de1.js"
+   ],
+   "cookies": [
+    "m"
    ]
   },
   {
-   "id": "Amazon CloudFront",
-   "name": "Amazon CloudFront",
-   "company": "Amazon",
-   "category": "hosting",
+   "id": "cnn.io:cnn.io",
+   "name": "cnn.io",
+   "company": null,
+   "category": "related",
    "hosts": [
-    "d9esmwyn3ffr1.cloudfront.net"
+    "registry.api.cnn.io",
+    "fave.api.cnn.io"
    ],
    "kinds": [
-    "script-reference"
+    "script",
+    "fetch",
+    "stylesheet"
    ],
-   "requests": 1,
-   "referencedOnly": true,
+   "requests": 9,
+   "bytes": 3697479,
+   "referencedOnly": false,
    "samples": [
-    "https://d9esmwyn3ffr1.cloudfront.net/script.js"
-   ]
-  },
-  {
-   "id": "Amazon S3 / AWS",
-   "name": "Amazon S3 / AWS",
-   "company": "Amazon",
-   "category": "hosting",
-   "hosts": [
-    "bvrmvkrkie.execute-api.us-east-1.amazonaws.com"
+    "https://registry.api.cnn.io/bundles/fave/latest-4.x/js",
+    "https://fave.api.cnn.io/v1/runtime-configs?env=prod",
+    "https://registry.api.cnn.io/bundles/fave/4.64.0/css"
    ],
-   "kinds": [
-    "script-reference"
-   ],
-   "requests": 1,
-   "referencedOnly": true,
-   "samples": [
-    "https://bvrmvkrkie.execute-api.us-east-1.amazonaws.com/v1/get-affiliate-tag"
-   ]
+   "cookies": []
   }
  ],
  "companies": [
-  "Amazon",
-  "Arkose Labs",
-  "Chartbeat",
-  "Comcast",
-  "Dianomi",
+  "BrightLine",
+  "Comscore",
   "Google",
-  "Index Exchange",
-  "Integral Ad Science",
-  "LiveRamp",
-  "Magnite",
-  "Microsoft",
-  "Nativo",
+  "MediaMelon",
   "OneTrust",
-  "OpenWeb",
   "Optimizely",
   "Piano",
-  "PubMatic"
+  "Quantcast",
+  "Stripe"
  ],
- "googleFonts": null,
- "notes": []
+ "googleFonts": {
+  "families": [
+   "Roboto"
+  ]
+ },
+ "notes": [],
+ "region": "local"
 }

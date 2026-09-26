@@ -1,6 +1,6 @@
-import dns from 'node:dns';
 import net from 'node:net';
 import { Agent, fetch as undiciFetch } from 'undici';
+import { BlockedAddressError, guardedLookup, isPrivateAddress } from './net-guard';
 
 export type ErrorCode =
   | 'invalid'
@@ -28,56 +28,8 @@ const USER_AGENT = 'Spillcheck/1.0 (+https://github.com/obrienafc/spillcheck)';
 
 const MAX_REDIRECTS = 5;
 
-/** True for loopback, private, link-local, CGNAT, multicast and other non-public ranges. */
-export function isPrivateAddress(address: string): boolean {
-  if (net.isIPv4(address)) {
-    const [a, b] = address.split('.').map(Number);
-    return (
-      a === 0 ||
-      a === 10 ||
-      a === 127 ||
-      (a === 100 && b >= 64 && b <= 127) ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 0) ||
-      (a === 192 && b === 168) ||
-      (a === 198 && (b === 18 || b === 19)) ||
-      a >= 224
-    );
-  }
-  if (net.isIPv6(address)) {
-    const lower = address.toLowerCase();
-    const mapped = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-    if (mapped) return isPrivateAddress(mapped[1]);
-    return (
-      lower === '::' ||
-      lower === '::1' ||
-      /^f[cd]/.test(lower) || // fc00::/7 unique local
-      /^fe[89ab]/.test(lower) || // fe80::/10 link local
-      /^ff/.test(lower) || // multicast
-      lower.startsWith('64:ff9b:') // NAT64
-    );
-  }
-  return true;
-}
-
-// Every connection is checked at connect time, so redirects and DNS answers
-// that change between checks (rebinding) can't reach internal addresses.
 const agent = new Agent({
-  connect: {
-    lookup(hostname, options, callback) {
-      dns.lookup(hostname, { ...options, all: true }, (err, addresses) => {
-        if (err) return callback(err, '', 4);
-        const list = addresses as dns.LookupAddress[];
-        const blocked = list.find((a) => isPrivateAddress(a.address));
-        if (blocked || list.length === 0) {
-          return callback(new ScanError('That address points to a private network.', 'private'), '', 4);
-        }
-        if ((options as dns.LookupOptions).all) return callback(null, list as never, 4);
-        callback(null, list[0].address, list[0].family);
-      });
-    },
-  },
+  connect: { lookup: guardedLookup as never },
   headersTimeout: 8_000,
   bodyTimeout: 8_000,
 });
@@ -134,6 +86,9 @@ export async function safeFetch(
     } catch (err) {
       const cause = (err as { cause?: unknown }).cause;
       if (cause instanceof ScanError) throw cause;
+      if (cause instanceof BlockedAddressError) {
+        throw new ScanError(cause.message, 'private');
+      }
       if (err instanceof ScanError) throw err;
       if ((err as Error).name === 'TimeoutError') throw new ScanError('The site took too long to respond.', 'timeout', 504);
       throw new ScanError('Couldn’t connect to that site.', 'unreachable', 502);

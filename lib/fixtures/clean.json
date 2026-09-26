@@ -1,14 +1,23 @@
 {
- "url": "patrickob.tech",
- "finalUrl": "https://patrickob.tech/",
- "scannedAt": "2026-09-26T17:18:32.193Z",
+ "url": "glyphyard.patrickob.tech",
+ "finalUrl": "https://glyphyard.patrickob.tech/",
+ "scannedAt": "2026-09-26T20:29:37.697Z",
+ "mode": "browser",
  "status": 200,
  "score": 100,
  "grade": "A+",
- "firstPartyRequests": 19,
- "cookies": [],
+ "requests": {
+  "firstParty": 90,
+  "thirdParty": 0
+ },
+ "thirdPartyBytes": 0,
+ "cookies": {
+  "firstParty": [],
+  "thirdParty": []
+ },
  "parties": [],
  "companies": [],
  "googleFonts": null,
- "notes": []
+ "notes": [],
+ "region": "local"
 }

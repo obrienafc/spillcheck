@@ -1,7 +1,7 @@
 import { badge } from '@/lib/badge';
 import { scan } from '@/lib/scan';
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 // GET /badge?url=example.com[&label=privacy][&detail=1]
 export async function GET(request: Request) {

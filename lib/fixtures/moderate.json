@@ -1,15 +1,103 @@
 {
  "url": "html5up.net",
  "finalUrl": "https://html5up.net/",
- "scannedAt": "2026-09-26T17:18:32.544Z",
+ "scannedAt": "2026-09-26T20:29:41.809Z",
+ "mode": "browser",
  "status": 200,
- "score": 86,
- "grade": "B",
- "firstPartyRequests": 58,
- "cookies": [],
+ "score": 37,
+ "grade": "F",
+ "requests": {
+  "firstParty": 54,
+  "thirdParty": 17
+ },
+ "thirdPartyBytes": 585104,
+ "cookies": {
+  "firstParty": [
+   "_ga_XB1PETZY12",
+   "_ga",
+   "_gid",
+   "_gat_gtag_UA_838659_4"
+  ],
+  "thirdParty": [
+   {
+    "name": "__cf_bm",
+    "domain": "twitter.com"
+   }
+  ]
+ },
  "parties": [
   {
-   "id": "Google Tag Manager",
+   "id": "Meta Pixel:connect.facebook.net",
+   "name": "Meta Pixel",
+   "company": "Meta",
+   "category": "advertising",
+   "hosts": [
+    "connect.facebook.net"
+   ],
+   "kinds": [
+    "script"
+   ],
+   "requests": 2,
+   "bytes": 82861,
+   "referencedOnly": false,
+   "samples": [
+    "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0",
+    "https://connect.facebook.net/en_US/bundle/sdk.js/"
+   ],
+   "cookies": []
+  },
+  {
+   "id": "Google Analytics:google-analytics.com",
+   "name": "Google Analytics",
+   "company": "Google",
+   "category": "analytics",
+   "hosts": [
+    "www.google-analytics.com",
+    "region1.google-analytics.com"
+   ],
+   "kinds": [
+    "script",
+    "fetch"
+   ],
+   "requests": 2,
+   "bytes": 21409,
+   "referencedOnly": false,
+   "samples": [
+    "https://www.google-analytics.com/analytics.js",
+    "https://region1.google-analytics.com/g/collect?v=2&tid=G-XB1PETZY12&gtm=45je69o0h2v9122495120za20gxf1&_p=1790454578628&gcd=13l3l3l2l1l1&npa=1&dma_cps=a&dma=1&_eu=AAAI&cid=667279687.1790454579&frm=0&ngs=1&pscdl=noapi&rcb=6&sr=800x600&uaa=&uab=&uafvl=&uam=&uamb=0&uap=&uapv=&uaw=0&ul=en-gb&_s=1&tag_exp=115938465~115938469~118012007~118897920~118897930~120213116~120385422~120469145~120469153&sid=1790454578&sct=1&seg=0&dl=https%3A%2F%2Fhtml5up.net%2F&dt=HTML5%20UP!%20Responsive%20HTML5%20and%20CSS3%20Site%20Templates&en=page_view&_fv=1&_nsi=1&_ss=1&tfd=587"
+   ],
+   "cookies": []
+  },
+  {
+   "id": "X (Twitter):twitter.com",
+   "name": "X (Twitter)",
+   "company": "X",
+   "category": "social",
+   "hosts": [
+    "platform.twitter.com",
+    "syndication.twitter.com",
+    "twitter.com"
+   ],
+   "kinds": [
+    "script",
+    "frame",
+    "fetch",
+    "image"
+   ],
+   "requests": 7,
+   "bytes": 138092,
+   "referencedOnly": false,
+   "samples": [
+    "https://platform.twitter.com/widgets.js",
+    "https://platform.twitter.com/widgets/widget_iframe.1227a5674072e080ffb1ba14ac0c1079.html?origin=https%3A%2F%2Fhtml5up.net",
+    "https://syndication.twitter.com/settings?session_id=6b036ffd3cde1aa8446065fd87d41a42ceebba16"
+   ],
+   "cookies": [
+    "__cf_bm"
+   ]
+  },
+  {
+   "id": "Google Tag Manager:googletagmanager.com",
    "name": "Google Tag Manager",
    "company": "Google",
    "category": "tag-manager",
@@ -19,14 +107,17 @@
    "kinds": [
     "script"
    ],
-   "requests": 1,
+   "requests": 2,
+   "bytes": 296408,
    "referencedOnly": false,
    "samples": [
-    "https://www.googletagmanager.com/gtag/js?id=UA-838659-4"
-   ]
+    "https://www.googletagmanager.com/gtag/js?id=UA-838659-4",
+    "https://www.googletagmanager.com/gtag/js?id=G-XB1PETZY12&cx=c&gtm=4e69o0h2"
+   ],
+   "cookies": []
   },
   {
-   "id": "Google Fonts",
+   "id": "Google Fonts:fonts.googleapis.com",
    "name": "Google Fonts",
    "company": "Google",
    "category": "fonts",
@@ -38,24 +129,27 @@
     "stylesheet",
     "font"
    ],
-   "requests": 22,
+   "requests": 4,
+   "bytes": 46334,
    "referencedOnly": false,
    "samples": [
     "https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,600,700",
-    "https://fonts.gstatic.com/s/sourcesanspro/v23/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwmhdu3cOWxy40.woff2",
-    "https://fonts.gstatic.com/s/sourcesanspro/v23/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwkxdu3cOWxy40.woff2"
-   ]
+    "https://fonts.gstatic.com/s/sourcesanspro/v23/6xKydSBYKcSV-LCoeQqfX1RYOo3ig4vwlxdu3cOWxw.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v23/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwlxdu3cOWxw.woff2"
+   ],
+   "cookies": []
   }
  ],
  "companies": [
-  "Google"
+  "Google",
+  "Meta",
+  "X"
  ],
  "googleFonts": {
   "families": [
    "Source Sans Pro"
   ]
  },
- "notes": [
-  "A tag manager is present, so more scripts are probably loaded at runtime."
- ]
+ "notes": [],
+ "region": "local"
 }
