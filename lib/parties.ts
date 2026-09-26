@@ -4,7 +4,7 @@
 
 import type { Category } from './categories';
 
-type Service = { name: string; company: string; category: Category; domains: string[] };
+export type Service = { name: string; company: string | null; category: Category; domains: string[] };
 
 const SERVICES: Service[] = [
   // Known risk
@@ -139,6 +139,7 @@ const SERVICES: Service[] = [
   { name: 'Monotype Fonts', company: 'Monotype', category: 'fonts', domains: ['fonts.net', 'fonts.com'] },
   { name: 'Hoefler&Co Cloud.typography', company: 'Monotype', category: 'fonts', domains: ['cloud.typography.com'] },
   { name: 'Bunny Fonts', company: 'BunnyWay', category: 'private-fonts', domains: ['fonts.bunny.net'] },
+  { name: 'coollabs Fonts', company: 'coolLabs', category: 'private-fonts', domains: ['fonts.coollabs.io'] },
 
   // Chat & support
   { name: 'Intercom', company: 'Intercom', category: 'support', domains: ['intercom.io', 'intercomcdn.com', 'intercomassets.com'] },
@@ -225,4 +226,3 @@ export function identify(url: URL): Service | null {
   return null;
 }
 
-export type { Service };

@@ -99,7 +99,7 @@ export const CATEGORIES: Record<Category, { label: string; weight: number; why: 
   'private-fonts': {
     label: 'Privacy-friendly fonts',
     weight: 2,
-    why: 'A no-logging font CDN. Self-hosting removes the request entirely.',
+    why: 'Fonts served by a privacy-preserving proxy or CDN, so visitors never contact Google.',
   },
   payments: {
     label: 'Payments',

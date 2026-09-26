@@ -22,8 +22,9 @@ export class ScanError extends Error {
   }
 }
 
-const USER_AGENT =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Spillcheck/1.0 (+https://github.com/obrienafc/spillcheck)';
+// An honest bot identity. Pretending to be Chrome gets connections reset by
+// servers that check whether a "browser" really behaves like one.
+const USER_AGENT = 'Spillcheck/1.0 (+https://github.com/obrienafc/spillcheck)';
 
 const MAX_REDIRECTS = 5;
 

@@ -1,7 +1,7 @@
 import { getDomain } from 'tldts';
 import { extractCss, extractHtml, type Kind, type Resource } from './extract';
 import { CATEGORIES, type Category } from './categories';
-import { identify } from './parties';
+import { identify, type Service } from './parties';
 import { ScanError, safeFetch } from './safe-fetch';
 
 const MAX_STYLESHEETS = 12;
@@ -115,6 +115,26 @@ export async function scan(input: string): Promise<Report> {
     if (!existing || (REFERENCE_KINDS.has(existing.kind) && !REFERENCE_KINDS.has(r.kind))) unique.set(r.url, r);
   }
 
+  // Hosts serving the Google Fonts CSS API that aren't Google: Glyphyard
+  // instances and other self-hosted font proxies.
+  const fontProxyHosts = new Set<string>();
+  for (const { url: href } of unique.values()) {
+    const url = new URL(href);
+    if (
+      /^\/css2?$/.test(url.pathname) &&
+      url.searchParams.has('family') &&
+      !url.hostname.endsWith('googleapis.com')
+    ) {
+      fontProxyHosts.add(url.hostname);
+    }
+  }
+  const fontProxy = (host: string): Service => ({
+    name: host.includes('glyphyard') ? 'Glyphyard' : 'Self-hosted Google Fonts proxy',
+    company: null,
+    category: 'private-fonts',
+    domains: [host],
+  });
+
   for (const { url: href, kind } of unique.values()) {
     const url = new URL(href);
     if (IGNORED_HOSTS.test(url.hostname)) continue;
@@ -129,8 +149,9 @@ export async function scan(input: string): Promise<Report> {
       }
     }
 
-    const service = identify(url);
-    const id = service ? service.name : siteOf(url);
+    const service =
+      identify(url) ?? (fontProxyHosts.has(url.hostname) ? fontProxy(url.hostname) : null);
+    const id = service ? `${service.name}:${service.domains[0]}` : siteOf(url);
     const party =
       parties.get(id) ??
       ({
