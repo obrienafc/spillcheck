@@ -27,6 +27,7 @@ import type { Kind } from '@/lib/extract';
 import { badge } from '@/lib/badge';
 import type { Party, Report } from '@/lib/scan';
 import { CATEGORY_ICONS, type ClientErrorCode, ERRORS, STROKE } from './icons';
+import { ThemeToggle } from './ThemeToggle';
 
 export const EXAMPLES = ['bbc.co.uk', 'cnn.com', 'wikipedia.org', 'getbootstrap.com'];
 const PUBLIC_ORIGIN = 'https://spillcheck.patrickob.tech';
@@ -103,10 +104,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <ScanSearch size={22} strokeWidth={STROKE} aria-hidden />
             Spillcheck
           </a>
-          <a className="quiet-link" href="https://github.com/obrienafc/spillcheck" target="_blank" rel="noreferrer">
-            GitHub
-            <ArrowUpRight size={14} strokeWidth={STROKE} aria-hidden />
-          </a>
+          <div className="nav-actions">
+            <ThemeToggle />
+            <a className="quiet-link" href="https://github.com/obrienafc/spillcheck" target="_blank" rel="noreferrer">
+              GitHub
+              <ArrowUpRight size={14} strokeWidth={STROKE} aria-hidden />
+            </a>
+          </div>
         </div>
       </nav>
       {children}
