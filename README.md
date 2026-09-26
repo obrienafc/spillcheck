@@ -118,5 +118,9 @@ project. PRs adding or correcting services are very welcome.
 
 ## License
 
-MIT. Sister project: [Glyphyard](https://github.com/obrienafc/glyphyard), which
+[AGPL-3.0](LICENSE). You can use, modify and self-host Spillcheck freely. If you
+run a modified version as a public service, you must share its source code under
+the same licence.
+
+Sister project: [Glyphyard](https://github.com/obrienafc/glyphyard), which
 self-hosts Google Fonts on your own domain.
