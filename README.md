@@ -49,7 +49,9 @@ page gets a privacy grade from A+ to F.
 | `label`   | `privacy` | Left-hand text, up to 24 characters. |
 | `detail`  | off       | `detail=1` adds the count: `B · 2 third parties`. |
 
-Badges read the same cached report as the report page. If a scan fails, the badge shows `unknown` rather
+Badges are colour-coded by grade, from green (A+) to red (F); every colour
+keeps at least 5:1 contrast with the white text, and the grade letter is always
+shown. Badges read the same cached report as the report page. If a scan fails, the badge shows `unknown` rather
 than a broken image. Every result page has copy-ready Markdown and HTML.
 
 ## How it works

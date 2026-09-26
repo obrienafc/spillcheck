@@ -16,10 +16,10 @@ export async function GET(request: Request) {
     const value = detail
       ? `${report.grade} · ${n} third ${n === 1 ? 'party' : 'parties'}`
       : report.grade;
-    return svg(badge(label, value), 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800');
+    return svg(badge(label, value, { grade: report.grade }), 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800');
   } catch {
     // Badges live in other people's READMEs, so a failed scan still renders.
-    return svg(badge(label, 'unknown', { muted: true }), 'public, max-age=300, s-maxage=3600');
+    return svg(badge(label, 'unknown'), 'public, max-age=300, s-maxage=3600');
   }
 }
 

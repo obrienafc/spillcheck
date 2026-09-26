@@ -458,6 +458,39 @@ svg {
   letter-spacing: -0.02em;
 }
 
+.summary-grade {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) 0.75rem;
+  margin-top: var(--s1);
+}
+
+.grade-badge {
+  display: inline-flex;
+  line-height: 0;
+}
+
+.grade-badge svg {
+  width: auto;
+  border-radius: 5px;
+}
+
+.grade-badge.large svg {
+  height: 2rem;
+}
+
+.grade-badge.medium svg {
+  height: 1.75rem;
+}
+
+.badge-intro {
+  width: 100%;
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--t-callout);
+}
+
 .summary-meta {
   margin: 0;
   color: var(--text-2);
@@ -691,11 +724,6 @@ svg {
 
 .badge-section h3 svg {
   color: var(--text-2);
-}
-
-.badge-section img {
-  display: block;
-  height: 20px;
 }
 
 .badge-actions {

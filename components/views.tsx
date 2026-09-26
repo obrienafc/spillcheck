@@ -24,6 +24,7 @@ import { forwardRef, useEffect, useRef, useState } from 'react';
 import type { Stage } from '@/lib/browser-scan';
 import { CATEGORIES, type Category } from '@/lib/categories';
 import type { Kind } from '@/lib/extract';
+import { badge } from '@/lib/badge';
 import type { Party, Report } from '@/lib/scan';
 import { CATEGORY_ICONS, type ClientErrorCode, ERRORS, STROKE } from './icons';
 
@@ -347,9 +348,12 @@ export function ResultView({
             <span className="hero-number">{total}</span>{' '}
             <span className="hero-label">{total === 1 ? 'third party' : 'third parties'}</span>
           </h2>
-          <p className="summary-meta">
-            Grade {report.grade}, {GRADE_WORDS[report.grade]} · {report.score}/100
-          </p>
+          <div className="summary-grade">
+            <GradeBadge grade={report.grade} size="large" />
+            <p className="summary-meta">
+              {GRADE_WORDS[report.grade]} · {report.score}/100
+            </p>
+          </div>
           <dl className="facts">
             <div>
               <dt>Third-party requests</dt>
@@ -372,12 +376,15 @@ export function ResultView({
           </dl>
           <p className="scan-source">
             {report.mode === 'browser' ? 'Real-browser scan' : 'Static scan'} from {region},{' '}
-            <time dateTime={report.scannedAt}>
+            {/* Formatted in the reader’s locale, which can differ from the server’s. */}
+            <time dateTime={report.scannedAt} suppressHydrationWarning>
               {new Date(report.scannedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
             </time>
           </p>
           {shareUrl && <CopyButton label="Copy link" icon="link" text={shareUrl} />}
         </section>
+
+        <BadgeSection report={report} />
 
         {total > 0 && (
           <nav className="index" aria-label="Categories">
@@ -397,8 +404,6 @@ export function ResultView({
             </ul>
           </nav>
         )}
-
-        <BadgeSection report={report} />
       </aside>
 
       <div className="detail-column">
@@ -536,15 +541,27 @@ function BadgeSection({ report }: { report: Report }) {
     <section className="badge-section" aria-labelledby="badge-heading">
       <h3 id="badge-heading">
         <BadgeCheck size={18} strokeWidth={STROKE} aria-hidden />
-        Badge
+        Add a badge
       </h3>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`/badge?url=${q}`} alt={`Privacy grade ${report.grade}`} height={20} />
+      <p className="badge-intro">Show this grade in a README or site footer. It links back to this report.</p>
+      <GradeBadge grade={report.grade} size="medium" />
       <div className="badge-actions">
         <CopyButton label="Markdown" text={`[![Spillcheck privacy grade](${img})](${page})`} />
         <CopyButton label="HTML" text={`<a href="${page}"><img src="${img}" alt="Spillcheck privacy grade"></a>`} />
       </div>
     </section>
+  );
+}
+
+/** The same SVG the /badge endpoint serves, rendered inline and scaled up. */
+function GradeBadge({ grade, size }: { grade: Report['grade']; size: 'large' | 'medium' }) {
+  return (
+    <span
+      className={`grade-badge ${size}`}
+      role="img"
+      aria-label={`Privacy grade ${grade}`}
+      dangerouslySetInnerHTML={{ __html: badge('privacy', grade, { grade }).replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true"') }}
+    />
   );
 }
 
