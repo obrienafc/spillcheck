@@ -1,0 +1,9 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Standard (2 GB), because Chromium peaks around 700 MB on heavy news sites
+# and the 512 MB plans run out of memory mid-scan.
+services:
+  - type: web
+    name: spillcheck
+    runtime: docker
+    plan: standard
+    healthCheckPath: /

@@ -28,6 +28,17 @@ export type BrowserResult = {
 const NAV_TIMEOUT = 20_000;
 const QUIET_MS = 1_500; // network idle this long ends the watch
 const WATCH_MAX = 8_000;
+const STEP_MAX = 8_000; // any single call into the page
+// Serverless hosts cap the function at 60s; long-running servers have no such
+// cap, so a page that never answers must not hold a browser open forever.
+const SCAN_DEADLINE = 50_000;
+
+/** Resolves to `fallback` if `promise` hasn't settled within `ms`. */
+function within<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: NodeJS.Timeout;
+  const late = new Promise<T>((resolve) => (timer = setTimeout(() => resolve(fallback), ms)));
+  return Promise.race([promise.catch(() => fallback), late]).finally(() => clearTimeout(timer));
+}
 
 const SCROLL_SCRIPT = `(async () => {
   const h = document.documentElement.scrollHeight;
@@ -76,6 +87,14 @@ async function launch(proxyPort: number): Promise<Browser> {
     '--disable-component-update',
   ];
 
+  // An explicit CHROME_PATH wins everywhere (the Docker image sets one).
+  // Containers run as an unprivileged user without namespaces for Chrome's
+  // sandbox, and give /dev/shm only 64 MB.
+  const explicit = process.env.CHROME_PATH;
+  if (explicit && fs.existsSync(explicit)) {
+    const container = process.platform === 'linux' ? ['--no-sandbox', '--disable-dev-shm-usage'] : [];
+    return puppeteer.launch({ executablePath: explicit, headless: true, args: [...container, ...shared] });
+  }
   const local = LOCAL_CHROME.find((p) => fs.existsSync(p));
   if (process.platform !== 'linux' && local) {
     return puppeteer.launch({ executablePath: local, headless: true, args: shared });
@@ -92,8 +111,15 @@ export async function browserScan(url: URL, onProgress: Progress = () => {}): Pr
   onProgress({ stage: 'launch' });
   const proxy = await startGuardProxy();
   let browser: Browser | undefined;
+  let timer: NodeJS.Timeout | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new ScanError('The site took too long to respond.', 'timeout', 504)),
+      SCAN_DEADLINE,
+    );
+  });
 
-  try {
+  const run = async (): Promise<BrowserResult> => {
     browser = await launch(proxy.port);
     const page = await browser.newPage();
     const ua = (await browser.userAgent()).replace('HeadlessChrome', 'Chrome');
@@ -154,7 +180,7 @@ export async function browserScan(url: URL, onProgress: Progress = () => {}): Pr
     // until the network has been quiet for a moment.
     onProgress({ stage: 'watch', requests: resources.length, thirdPartyHosts: hosts.size });
     // A string, so bundler helpers can't leak into the page's scope.
-    await page.evaluate(SCROLL_SCRIPT).catch(() => {});
+    await within(page.evaluate(SCROLL_SCRIPT), STEP_MAX, undefined);
     const started = Date.now();
     while (Date.now() - started < WATCH_MAX && Date.now() - lastActivity < QUIET_MS) {
       await new Promise((r) => setTimeout(r, 250));
@@ -163,7 +189,8 @@ export async function browserScan(url: URL, onProgress: Progress = () => {}): Pr
     await new Promise((r) => setTimeout(r, 400));
 
     const readCookies = async (): Promise<Cookie[]> => {
-      const { cookies } = (await cdp.send('Network.getAllCookies')) as { cookies: Cookie[] };
+      const read = cdp.send('Network.getAllCookies') as Promise<{ cookies: Cookie[] }>;
+      const { cookies } = await within(read, STEP_MAX, { cookies: [] });
       return cookies.map((c) => ({ name: c.name, domain: c.domain.replace(/^\./, '') }));
     };
 
@@ -173,12 +200,12 @@ export async function browserScan(url: URL, onProgress: Progress = () => {}): Pr
 
     // ...and after clicking "Accept all".
     onProgress({ stage: 'consent', requests: resources.length, thirdPartyHosts: hosts.size });
-    const consent = await acceptConsent(page).catch(() => null);
+    const consent = await within(acceptConsent(page), STEP_MAX, null);
     if (consent) {
       lastActivity = Date.now();
       // Some banners reload the page after consent.
       await page.waitForNetworkIdle({ idleTime: QUIET_MS, timeout: WATCH_MAX }).catch(() => {});
-      await page.evaluate(SCROLL_SCRIPT).catch(() => {});
+      await within(page.evaluate(SCROLL_SCRIPT), STEP_MAX, undefined);
       const afterStarted = Date.now();
       while (Date.now() - afterStarted < WATCH_MAX && Date.now() - lastActivity < QUIET_MS) {
         await new Promise((r) => setTimeout(r, 250));
@@ -194,8 +221,16 @@ export async function browserScan(url: URL, onProgress: Progress = () => {}): Pr
     }
 
     return { finalUrl, status, resources, beforeConsent, cookiesBefore, cookiesAfter, consent };
+  };
+
+  try {
+    return await Promise.race([run(), deadline]);
   } finally {
-    await browser?.close().catch(() => {});
+    clearTimeout(timer);
+    // Closing also fails any call still waiting on the page.
+    const b = browser as Browser | undefined;
+    const closed = await within(b?.close().then(() => true) ?? Promise.resolve(true), 5_000, false);
+    if (!closed) b?.process()?.kill('SIGKILL');
     await proxy.close();
   }
 }

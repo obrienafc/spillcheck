@@ -10,6 +10,7 @@ page gets a privacy grade from A+ to F.
 ![Spillcheck showing a page that contacts 2 third parties: Google Fonts and Google Tag Manager](docs/screenshot.png)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fobrienafc%2Fspillcheck&project-name=spillcheck)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/obrienafc/spillcheck)
 
 ## Features
 
@@ -110,6 +111,27 @@ npm run dev
 Locally, Spillcheck uses your installed Chrome (or `CHROME_PATH`). On Vercel it
 uses `@sparticuz/chromium`; `vercel.json` gives the scan and badge functions
 2 GB of memory and 60 seconds. Node 20+.
+
+### Docker
+
+The image uses Debian's Chromium and runs on amd64 and arm64:
+
+```bash
+docker build -t spillcheck .
+docker run -p 3000:3000 -m 1g spillcheck
+```
+
+Give it at least 1 GB of memory: Chromium peaks around 700 MB on heavy news
+sites. This is also what the **Deploy to Render** button uses (Standard plan,
+2 GB).
+
+Off Vercel, a few things work differently:
+
+- Reports and the rate limit are kept in memory, so they reset on restart and
+  aren't shared between instances.
+- **Scan from EU** scans from wherever your server runs.
+- Each scan stops after 50 seconds, so a page that never settles can't hold a
+  browser open.
 
 ## Contributing
 
